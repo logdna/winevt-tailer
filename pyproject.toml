@@ -1,0 +1,74 @@
+[tool.poetry]
+name = "winevt-tailer"
+version = "0.1.0"
+description = 'Windows Event Log Tailer'
+authors = ["Dmitri Khokhlov <dkhokhlov@gmail.com>"]
+maintainers = ["Dmitri Khokhlov <dkhokhlov@gmail.com>"]
+license = "MIT"
+repository = "https://github.com/logdna/winevt-tailer"
+documentation = "https://github.com/logdna/winevt-tailer"
+readme = "README.md"
+
+[tool.semantic_release]
+version_toml = "pyproject.toml:tool.poetry.version"
+version_pattern = "winevt-tailer/VERSION:(\\d+\\.\\d+\\.\\d+)"
+branch = "master"
+commit_subject = "release: Version {version} [skip ci]"
+commit_author = "LogDNA Bot <bot@logdna.com>"
+
+[tool.poetry.dependencies]
+python = "=3.10"
+pywin32 = "^304"
+lxml = "^4.9.1"
+PyYAML = "^6.0"
+pydantic = "^1.10.2"
+
+[tool.poetry.dev-dependencies]
+coverage = "^5.4"
+flake8 = "^3.8.4"
+yapf = "^0.30.0"
+pytest = "^6.2.2"
+pytest-cov = "^2.11.1"
+taskipy = "^1.6.0"
+python-semantic-release = "^7.16.1"
+pyinstaller = "^5.4.1"
+
+[tool.taskipy.tasks]
+pre_test = "mkdir -p coverage"
+test = "pytest --junitxml=coverage/test.xml --cov=winevt-tailer --cov-report=html --verbose tests/"
+post_test = "python scripts/json_coverage.py"
+lint = "flake8 --doctests"
+"lint:fix" =  "yapf -r -i winevt-tailer scripts tests"
+"post_lint:fix" = "task lint"
+release = "semantic-release publish"
+create_exe = "pyinstaller.exe --clean --specpath ./build --name winevt-tailer --hidden-import winevt_tailer.transforms --onefile winevt_tailer/main.py"
+#poetry shell -n;
+
+[build-system]
+requires = ["poetry>=0.12"]
+build-backend = "poetry.masonry.api"
+
+[tool.pytest.ini_options]
+minversion = "6.0"
+testpaths = "tests"
+
+[tool.coverage.run]
+branch = true
+source = ["winevt-tailer"]
+
+[tool.coverage.report]
+fail_under = 76
+show_missing = true
+
+[tool.coverage.json]
+output = "coverage/coverage.json"
+
+[tool.coverage.html]
+directory = "coverage"
+show_contexts = true
+
+[tool.poetry.scripts]
+run = "winevt_tailer.main:main"
+
+[tool.poetry.urls]
+issues = "https://github.com/logdna/winevt-tailer/issues"
