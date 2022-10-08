@@ -3,7 +3,6 @@ import win32evtlog, win32event, win32con
 import winevt_tailer.opts as opts
 import winevt_tailer.errors as errors
 from lxml import etree
-import winevt_tailer.const as const
 
 
 class Tailer:
@@ -17,10 +16,9 @@ class Tailer:
                 f'Too many channels - {self.num}. Maximum supported - {win32event.MAXIMUM_WAIT_OBJECTS}')
         self.config = config
         self.context = {}
-        self.global_transforms = config.transforms
         self.channel_transforms = [channel.transforms for channel in config.channels]
+        self.final_transforms = config.transforms
         self.signals = [win32event.CreateEvent(None, 0, 0, None) for _ in config.channels]
-        self.xslt_xform = etree.XSLT(etree.fromstring(const.XSLT_XML_TO_JSON))
 
     def run(self) -> int:
         # subscribe
@@ -44,7 +42,8 @@ class Tailer:
                     break
                 for event in events:
                     xml_str = win32evtlog.EvtRender(event, win32evtlog.EvtRenderEventXml)
-                    self.handle_event(ch_idx, xml_str)
+                    xml_obj = etree.fromstring(xml_str)
+                    self.handle_event(ch_idx, xml_obj)
         # event loop
         while True:
             while True:
@@ -58,16 +57,19 @@ class Tailer:
                 if len(events) == 0:
                     break
                 for event in events:
-                    print(win32evtlog.EvtRender(event, win32evtlog.EvtRenderEventXml))
-                print("retrieved %s events" % len(events))
+                    xml_str = win32evtlog.EvtRender(event, win32evtlog.EvtRenderEventXml)
+                    xml_obj = etree.fromstring(xml_str)
+                    self.handle_event(ch_idx, xml_obj)
         return 0
 
-    def handle_event(self, ch_idx: int, event_xml: str):
-        xml_obj = etree.fromstring(event_xml)
-        for xform in self.global_transforms:
-            xform(self.context, xml_obj)
+    def handle_event(self, ch_idx: int, xml_obj: object):
+        event = xml_obj
+        # apply channel transforms
         for xform in self.channel_transforms[ch_idx]:
-            xform(self.context, xml_obj)
-        json_doc = self.xslt_xform(xml_obj)
-        print(json_doc)
+            event = xform(self.context, event)
+        # apply common final transforms
+        for xform in self.final_transforms:
+            event = xform(self.context, event)
+        # print to stdout
+        print(event)
         pass

@@ -74,7 +74,8 @@ class TailerConfig(pydantic.BaseModel):
     bookmarks_file: str = None
     bookmark_interval_s: int = 10
     lookback: int = -1  # start-at-oldest
-    transforms: List[PyObject] = ['winevt_tailer.transforms.remove_binary']
+    transforms: List[PyObject] = ['winevt_tailer.transforms.xml_remove_binary',
+                                  'winevt_tailer.transforms.xml_to_json']
 
 
 def parse_tailer_config(yaml_dict):
@@ -85,7 +86,7 @@ def parse_tailer_config(yaml_dict):
     return config
 
 
-def get_config(args:object) -> (dict, dict):
+def get_config(args: object) -> (dict, dict):
     """
     Collect tailer and logging configs from multiple sources (later overrides former):
     - default build-in

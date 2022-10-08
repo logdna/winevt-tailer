@@ -8,7 +8,8 @@ DEFAULT_TAILER_CONFIG = \
     lookback: -1           # start-at-oldest
     bookmarks_file: null   # bookmarks not used
     transforms:
-       - winevt_tailer.transforms.remove_binary
+        - winevt_tailer.transforms.xml_remove_binary
+        - winevt_tailer.transforms.xml_to_json
     '''
 
 DEFAULT_LOGGING_CONFIG = \
@@ -53,9 +54,9 @@ XSLT_XML_TO_JSON = \
       </xsl:template>
       <xsl:template match="text()">
         <xsl:if test="position() != 1">, </xsl:if>
-        <xsl:value-of select="concat('{&quot;text&quot;: &quot;', 
+        <xsl:value-of select="concat('&quot;', 
           normalize-space(), 
-          '&quot;}')"/>
+          '&quot;')"/>
       </xsl:template>
     </xsl:stylesheet>
     '''

@@ -1,17 +1,25 @@
 from lxml import etree
+import winevt_tailer.const as const
+
+_xslt_xform = etree.XSLT(etree.fromstring(const.XSLT_XML_TO_JSON))
 
 
-def remove_binary(context: dict, event: object) -> bool:
+def xml_to_json(context: dict, event: object) -> object:
+    event_out = _xslt_xform(event)
+    return event_out
+
+
+def xml_remove_binary(context: dict, event: object) -> object:
     """
         Removes Event/EventData/Binary tag from event
     Args:
         context(dict): context persist over runtime. can be re-used to store key-values pairs
-        event(object): event object, lxml
+        event(object): event object, lxml tree object
     Returns:
-        bool:  False - skip/drop event
+        object:  None - skip/drop event
     """
     context['last_event'] = event
     ns = {'event': 'http://schemas.microsoft.com/win/2004/08/events/event'}
     for data in event.xpath("//event:Binary", namespaces=ns):
         data.getparent().remove(data)
-    return True
+    return event

@@ -27,14 +27,16 @@ def main() -> int:
 
     # run tailing
     # Tailer outputs events as single line JSON to stdout.
-    # custom transforms can be applied to events (lxml object) before they get rendered to JSON.
-    # transforms can be specified in tailer config as a list:
+    # Custom transforms can be applied to events (lxml object) before they get rendered to JSON.
+    # Multiple chained transforms can be specified in tailer config as a list:
     #
-    #   transforms: ['xform1', 'xform2' , ...]       - at tailer level or at channel level, global processed first,
-    #                                                  transform value is Python (or CFFI native) function import path.
-    #                                                  function signature: def transform(context:dict, event:lxml_obj)
+    #   transforms: ['xform1', 'xform2' , ...]
     #
-    #  default global transform: 'winevt_tailer.transforms.remove_binary' - removes Data field from events.
+    #   - at channel level, applied first
+    #   - at tailer level, final transforms, applied last, after channel transforms.
+    #
+    #  Transform value type is string that represents Python function import path.
+    #  Function signature: def transform(context:dict, event:object): object
     #
     assert args.tail
     tailer_config = opts.parse_tailer_config(tailer_config_dict)
