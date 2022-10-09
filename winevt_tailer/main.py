@@ -1,4 +1,5 @@
 import sys
+import signal
 import winevt_tailer.opts as opts
 import winevt_tailer.utils as utils
 from winevt_tailer.tailer import Tailer
@@ -41,8 +42,15 @@ def main() -> int:
     assert args.tail
     tailer_config = opts.parse_tailer_config(tailer_config_dict)
     tailer = Tailer(args.name, tailer_config)
+    signal.signal(signal.SIGINT, lambda signum, frame: signal_handler(signum, frame, tailer))
+
     exit_code = tailer.run()
     return exit_code
+
+
+def signal_handler(signum, frame, tailer):
+    tailer.set_exit(True)
+    print('Exiting ...', file=sys.stderr)
 
 
 ####################################################################################
