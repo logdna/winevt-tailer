@@ -1,11 +1,10 @@
 from lxml import etree
 import winevt_tailer.const as const
 
-_xslt_xform = etree.XSLT(etree.fromstring(const.XSLT_XML_TO_JSON))
-
+xml_to_json_xform = etree.XSLT(etree.fromstring(const.XSLT_XML_TO_JSON2))
 
 def xml_to_json(context: dict, event: object) -> object:
-    event_out = _xslt_xform(event)
+    event_out = xml_to_json_xform(event)
     return event_out
 
 

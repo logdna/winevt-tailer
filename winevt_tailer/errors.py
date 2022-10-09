@@ -19,4 +19,4 @@ def quiet_hook(kind, message, traceback):
         sys.__excepthook__(kind, message, traceback)  # Print Error Type, Message and Traceback
 
 
-sys.excepthook = quiet_hook
+#sys.excepthook = quiet_hook
