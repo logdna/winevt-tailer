@@ -75,6 +75,7 @@ class TailerConfig(pydantic.BaseModel):
     bookmark_interval_s: int = 10
     lookback: int = -1  # start-at-oldest
     transforms: List[PyObject] = ['winevt_tailer.transforms.xml_remove_binary',
+                                  'winevt_tailer.transforms.xml_render_message',
                                   'winevt_tailer.transforms.xml_to_json']
 
 

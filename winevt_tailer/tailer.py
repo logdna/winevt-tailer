@@ -1,3 +1,4 @@
+import sys
 import logging
 import win32evtlog, win32event, win32con
 import winevt_tailer.opts as opts
@@ -40,10 +41,8 @@ class Tailer:
                 events = win32evtlog.EvtNext(subs[ch_idx], call_timeout_ms)
                 if len(events) == 0:
                     break
-                for event in events:
-                    xml_str = win32evtlog.EvtRender(event, win32evtlog.EvtRenderEventXml)
-                    xml_obj = etree.fromstring(xml_str)
-                    self.handle_event(ch_idx, xml_obj)
+                for event_h in events:
+                    self.handle_event(ch_idx, event_h)
         # event loop
         while True:
             while True:
@@ -56,20 +55,19 @@ class Tailer:
                 events = win32evtlog.EvtNext(subs[ch_idx], call_timeout_ms)
                 if len(events) == 0:
                     break
-                for event in events:
-                    xml_str = win32evtlog.EvtRender(event, win32evtlog.EvtRenderEventXml)
-                    xml_obj = etree.fromstring(xml_str)
-                    self.handle_event(ch_idx, xml_obj)
+                for event_h in events:
+                    self.handle_event(ch_idx, event_h)
         return 0
 
-    def handle_event(self, ch_idx: int, xml_obj: object):
-        event = xml_obj
+    def handle_event(self, ch_idx: int, event_h):
+        xml_str = win32evtlog.EvtRender(event_h, win32evtlog.EvtRenderEventXml)
+        event_obj = etree.fromstring(xml_str)
         # apply channel transforms
         for xform in self.channel_transforms[ch_idx]:
-            event = xform(self.context, event)
-        # apply common final transforms
+            event_obj = xform(self.context, event_h, event_obj)
+        # apply common transforms
         for xform in self.final_transforms:
-            event = xform(self.context, event)
+            event_obj = xform(self.context, event_h, event_obj)
         # print to stdout
-        print(event)
-        pass
+        print(event_obj)
+        # sys.stdout.flush()

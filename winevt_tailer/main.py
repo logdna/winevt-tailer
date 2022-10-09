@@ -33,7 +33,7 @@ def main() -> int:
     #   transforms: ['xform1', 'xform2' , ...]
     #
     #   - at channel level, applied first
-    #   - at tailer level, final transforms, applied last, after channel transforms.
+    #   - at tailer level, common transforms, applied last, after channel transforms.
     #
     #  Transform value type is string that represents Python function import path.
     #  Function signature: def transform(context:dict, event:object): object
