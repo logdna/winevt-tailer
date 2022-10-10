@@ -9,6 +9,10 @@ class ConfigError(TailerError):
     pass
 
 
+class BookmarksError(TailerError):
+    pass
+
+
 class ArgError(TailerError):
     pass
 

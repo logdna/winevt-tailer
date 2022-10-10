@@ -43,7 +43,6 @@ def main() -> int:
     tailer_config = opts.parse_tailer_config(tailer_config_dict)
     tailer = Tailer(args.name, tailer_config)
     signal.signal(signal.SIGINT, lambda signum, frame: signal_handler(signum, frame, tailer))
-
     exit_code = tailer.run()
     return exit_code
 

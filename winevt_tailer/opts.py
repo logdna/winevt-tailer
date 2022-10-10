@@ -71,8 +71,8 @@ class ChannelConfig(pydantic.BaseModel):
 
 class TailerConfig(pydantic.BaseModel):
     channels: List[ChannelConfig]
-    bookmarks_file: str = None
-    bookmark_interval_s: int = 10
+    bookmarks_dir: str = "."  # default: current working directory
+    bookmarks_commit_s: int = 10  # seconds
     lookback: int = -1  # start-at-oldest
     transforms: List[PyObject] = ['winevt_tailer.transforms.xml_remove_binary',
                                   'winevt_tailer.transforms.xml_render_message',
