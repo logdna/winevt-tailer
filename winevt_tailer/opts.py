@@ -9,7 +9,7 @@ from typing import List
 import winevt_tailer.errors as errors
 import winevt_tailer.utils as utils
 import winevt_tailer.const as const
-
+from winevt_tailer import __version__
 
 def str_regex_type(arg_value, regex_str):
     pat = re.compile(regex_str)
@@ -33,22 +33,28 @@ def parse_cmd_args(argv=None):
     Returns:
         dict: parsed arguments as argparse dict
     """
+
     parser = argparse.ArgumentParser(description='Tails Windows Event logs to stdout.'
                                                  'JSON format.')
+    parser = argparse.ArgumentParser(add_help=False)
     group = parser.add_mutually_exclusive_group(required=True)
-    group.add_argument('-l', '--list', action='store_true', help='list event channel names accessible to current '
+    group.add_argument('-v', '--version', action='version',
+                        version=f'winevt-tailer {__version__}', help="Show program version info and exit.")
+    group.add_argument('-h', '--help', action='help', default=argparse.SUPPRESS,
+                        help='Show this help message and exit.')
+    group.add_argument('-l', '--list', action='store_true', help='List event channel names accessible to current '
                                                                  'user. Some channels need Admin rights.')
-    group.add_argument('-t', '--tail', action='store_true', help='tail events to stdout, format is single line JSON')
-    parser.add_argument('-c', '--config', dest='config_file', help='config file path, file format: yaml',
+    group.add_argument('-t', '--tail', action='store_true', help='Tail events to stdout, format is single line JSON')
+    parser.add_argument('-c', '--config', dest='config_file', help='Config file path, file format: yaml',
                         type=argparse.FileType('r'),
                         metavar='filepath')
-    parser.add_argument('-n', '--name', help='tailer name. also defines where to look for tailer config: '
-                                             'tailers/<name> in yaml file; TAILER_CONFIG_<name> in env var (yaml)',
+    parser.add_argument('-n', '--name', help='Tailer name. also defines where to look for tailer config: '
+                                             'Tailers/<name> in yaml file; TAILER_CONFIG_<name> in env var (yaml)',
                         type=lambda val: str_regex_type(val, regex_str=r'^[^\s]+$'), default='default')
-    parser.add_argument('-b', '--lookback', type=int, help='start tailing at N events back. -1 means start-at-oldest')
-    parser.add_argument('--logging_yaml', help='logging config as yaml string',
+    parser.add_argument('-b', '--lookback', type=int, help='Start tailing at N events back. -1 means start-at-oldest')
+    parser.add_argument('--logging-yaml', help='Logging config as yaml string',
                         type=yaml_regex_type)
-    parser.add_argument('--config_yaml', help='tailer config as yaml string',
+    parser.add_argument('--config-yaml', help='Tailer config as yaml string',
                         type=yaml_regex_type)
     #
     if argv is None:

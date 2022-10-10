@@ -22,6 +22,7 @@ pywin32 = "^304"
 lxml = "^4.9.1"
 PyYAML = "^6.0"
 pydantic = "^1.10.2"
+single-source = "^0.3.0"
 
 [tool.poetry.dev-dependencies]
 coverage = "^5.4"
@@ -41,7 +42,7 @@ lint = "flake8 --doctests"
 "lint:fix" =  "yapf -r -i winevt-tailer scripts tests"
 "post_lint:fix" = "task lint"
 release = "semantic-release publish"
-create_exe = "pyinstaller.exe --clean --specpath ./build --name winevt-tailer --hidden-import winevt_tailer.transforms --onefile winevt_tailer/main.py"
+create_exe = "pyinstaller.exe --clean --specpath ./build --name winevt-tailer --copy-metadata winevt_tailer --hidden-import winevt_tailer.transforms --onefile winevt_tailer/main.py"
 #poetry shell -n;
 
 [build-system]
