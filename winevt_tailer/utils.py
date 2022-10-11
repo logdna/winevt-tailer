@@ -47,7 +47,7 @@ def replace_file(src_file_name: str, dest_file_name: str):
     win32file.ReplaceFile(src_file_name, dest_file_name)
 
 
-def store_bookmarks(bookmarks: list, channels: list, file_name: str):
+def store_bookmarks(file_name: str, bookmarks: list, channels: list):
     """
     Store bookmarks to file in JSON format
     Args:
@@ -62,7 +62,7 @@ def store_bookmarks(bookmarks: list, channels: list, file_name: str):
         ch = channels[i]
         key = ch.name + '#' + ch.query
         xml_str = win32evtlog.EvtRender(bookmarks[i], win32evtlog.EvtRenderBookmark)
-        bookmarks_dict[key] = xml_str
+        bookmarks_dict[key] = xml_str.replace('\r', '').replace('\n', '')
     with open(tmp_file_name, 'w') as f:
         json.dump(bookmarks_dict, f)
     replace_file(tmp_file_name, file_name)
@@ -80,7 +80,7 @@ def load_bookmarks(file_name, channels: list) -> list:
             bookmarks_dict = json.load(f)
         for ch in channels:
             key = ch.name + '#' + ch.query
-            xml_str = bookmarks_dict.get(key)
+            xml_str = bookmarks_dict.get(key)  # for added or updated channels this may be None
             bookmarks.append(win32evtlog.EvtCreateBookmark(xml_str))
     except Exception as ex:
         raise errors.BookmarksError(ex)

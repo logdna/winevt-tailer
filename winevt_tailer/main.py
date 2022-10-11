@@ -26,6 +26,19 @@ def main() -> int:
     # by default log goes to stderr
     logging.config.dictConfig(logging_config_dict)
 
+    tailer_config = opts.parse_tailer_config(tailer_config_dict)
+    if args.lookback:  # args always override config
+        tailer_config.lookback = args.lookback
+    if args.lookback and args.lookback < 0:
+        tailer_config.lookback = sys.maxsize
+    if args.persistent:
+        tailer_config.persistent = True
+    tailer = Tailer(args.name, tailer_config)
+
+    # print effective config to stdout and exit
+    if args.print_config:
+        return 0
+
     # run tailing
     # Tailer outputs events as single line JSON to stdout.
     # Custom transforms can be applied to events (lxml object) before they get rendered to JSON.
@@ -40,12 +53,6 @@ def main() -> int:
     #  Function signature: def transform(context:dict, event:object): object
     #
     assert args.tail
-    tailer_config = opts.parse_tailer_config(tailer_config_dict)
-    if args.lookback:  # args always override config
-        tailer_config.lookback = args.lookback
-    if args.lookback and args.lookback < 0:
-        tailer_config.lookback = sys.maxsize
-    tailer = Tailer(args.name, tailer_config)
     signal.signal(signal.SIGINT, lambda signum, frame: signal_handler(signum, frame, tailer))
     exit_code = tailer.run()
     return exit_code

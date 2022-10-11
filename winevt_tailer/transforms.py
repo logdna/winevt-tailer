@@ -1,5 +1,5 @@
 from lxml import etree
-import winevt_tailer.const as const
+import winevt_tailer.consts as const
 import win32evtlog
 
 xml_to_json_xform = etree.XSLT(etree.fromstring(const.XSLT_XML_TO_JSON))
