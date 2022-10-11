@@ -41,6 +41,10 @@ def main() -> int:
     #
     assert args.tail
     tailer_config = opts.parse_tailer_config(tailer_config_dict)
+    if args.lookback:  # args always override config
+        tailer_config.lookback = args.lookback
+    if args.lookback and args.lookback < 0:
+        tailer_config.lookback = sys.maxsize
     tailer = Tailer(args.name, tailer_config)
     signal.signal(signal.SIGINT, lambda signum, frame: signal_handler(signum, frame, tailer))
     exit_code = tailer.run()

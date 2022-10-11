@@ -48,10 +48,12 @@ def parse_cmd_args(argv=None):
     parser.add_argument('-c', '--config', dest='config_file', help='Config file path, file format: yaml',
                         type=argparse.FileType('r'),
                         metavar='filepath')
-    parser.add_argument('-n', '--name', help='Tailer name. also defines where to look for tailer config: '
+    parser.add_argument('-n', '--name', help='Tailer name. Also defines where to look for config: '
                                              'Tailers/<name> in yaml file; TAILER_CONFIG_<name> in env var (yaml)',
                         type=lambda val: str_regex_type(val, regex_str=r'^[^\s]+$'), default='default')
-    parser.add_argument('-b', '--lookback', type=int, help='Start tailing at N events back. -1 means start-at-oldest')
+    parser.add_argument('-b', '--lookback', type=int, help='Defines how many old events to tail for new/modified '
+                                                           'channels at start. -1 means all available events ('
+                                                           'default)')  # default defined in TailerConfig
     parser.add_argument('--logging-yaml', help='Logging config as yaml string',
                         type=yaml_regex_type)
     parser.add_argument('--config-yaml', help='Tailer config as yaml string',

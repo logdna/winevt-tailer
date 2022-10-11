@@ -33,22 +33,28 @@ class Tailer:
     def run(self) -> int:
         # subscribe to channels for events
         subs = []
+        qrys = []
         for ch_idx in range(0, len(self.config.channels)):
             channel = self.config.channels[ch_idx]
+            qry = win32evtlog.EvtQuery(channel.name, win32evtlog.EvtQueryForwardDirection, channel.query)
             sub = win32evtlog.EvtSubscribe(
                 channel.name,
-                win32evtlog.EvtSubscribeStartAtOldestRecord,
+                win32evtlog.EvtSubscribeToFutureEvents,
                 SignalEvent=self.signals[ch_idx],
                 Query=channel.query
             )
             subs.append(sub)
+            qrys.append(qry)
+        del qry, sub
         # fetch old events
         for ch_idx in range(0, len(self.config.channels)):
             last_event_h = None
+            if self.config.lookback:
+                win32evtlog.EvtSeek(qrys[ch_idx], -self.config.lookback, win32evtlog.EvtSeekRelativeToLast)
             while True:
                 if self.is_exit:
                     return 0
-                events = win32evtlog.EvtNext(subs[ch_idx], Count=50, Timeout=100)
+                events = win32evtlog.EvtNext(qrys[ch_idx], Count=50, Timeout=100)
                 if len(events) == 0:
                     break
                 for event_h in events:
@@ -56,6 +62,7 @@ class Tailer:
                         last_event_h = event_h
             if last_event_h:  # last event if any
                 win32evtlog.EvtUpdateBookmark(self.bookmarks[ch_idx], last_event_h)
+        del qrys
         # event loop
         while True:
             # wait for channels to be signaled about new events, one channel at the time
