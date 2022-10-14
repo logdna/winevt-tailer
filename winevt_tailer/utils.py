@@ -1,10 +1,11 @@
 import json
 import os
 import lxml
+import yaml
 from lxml import etree
 import win32evtlog, win32event, win32file
 import winevt_tailer.errors as errors
-
+from collections import OrderedDict
 
 def is_valid_xpath(s) -> bool:
     valid = True
@@ -85,3 +86,9 @@ def load_bookmarks(file_name, channels: list) -> list:
     except Exception as ex:
         raise errors.BookmarksError(ex)
     return bookmarks
+
+
+def get_effective_config(tailer_name, tailer_config: dict, logging_config:dict) -> str:
+    config_dict = {'winevt-tailer': {tailer_name: tailer_config, 'logging': logging_config}}
+    yaml_str = yaml.dump(config_dict, indent=4)
+    return yaml_str

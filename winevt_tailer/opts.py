@@ -53,7 +53,7 @@ def parse_cmd_args(argv=None):
                         metavar='filepath')
     parser.add_argument('-n', '--name', help='Tailer name. Also defines where to look for config: '
                                              'Tailers/<name> in yaml file; TAILER_CONFIG_<name> in env var (yaml)',
-                        type=lambda val: str_regex_type(val, regex_str=r'^[^\s]+$'), default='tail1')
+                        type=lambda val: str_regex_type(val, regex_str=r'^[^\s]+$'), default='tailer1')
     parser.add_argument('-b', '--lookback', type=int, help='Defines how many old events to tail for new/modified '
                                                            'channels. -1 means all available events ('
                                                            'default). Only for channels without persisted state.')

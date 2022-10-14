@@ -26,17 +26,18 @@ def main() -> int:
     # by default log goes to stderr
     logging.config.dictConfig(logging_config_dict)
 
-    tailer_config = opts.parse_tailer_config(tailer_config_dict)
     if args.lookback:  # args always override config
-        tailer_config.lookback = args.lookback
-    if args.lookback and args.lookback < 0:
-        tailer_config.lookback = sys.maxsize
+        if args.lookback < 0:
+            tailer_config_dict['lookback'] = sys.maxsize
+        else:
+            tailer_config_dict['lookback'] = args.lookback
     if args.persistent:
-        tailer_config.persistent = True
-    tailer = Tailer(args.name, tailer_config)
+        tailer_config_dict['persistent'] = True
 
     # print effective config to stdout and exit
     if args.print_config:
+        yaml_str = utils.get_effective_config(args.name, tailer_config_dict, logging_config_dict)
+        print(yaml_str)
         return 0
 
     # run tailing
@@ -53,6 +54,8 @@ def main() -> int:
     #  Function signature: def transform(context:dict, event:object): object
     #
     assert args.tail
+    tailer_config = opts.parse_tailer_config(tailer_config_dict)
+    tailer = Tailer(args.name, tailer_config)
     signal.signal(signal.SIGINT, lambda signum, frame: signal_handler(signum, frame, tailer))
     exit_code = tailer.run()
     return exit_code
