@@ -11,6 +11,7 @@ import winevt_tailer.utils as utils
 import winevt_tailer.consts as const
 from winevt_tailer import __version__
 
+
 def str_regex_type(arg_value, regex_str):
     pat = re.compile(regex_str)
     if not pat.match(arg_value):
@@ -39,27 +40,29 @@ def parse_cmd_args(argv=None):
     parser = argparse.ArgumentParser(add_help=False)
     group = parser.add_mutually_exclusive_group(required=True)
     group.add_argument('-v', '--version', action='version',
-                        version=f'winevt-tailer {__version__}', help="Show program version info and exit.")
+                       version=f'winevt-tailer {__version__}', help="Show program version info and exit.")
     group.add_argument('-h', '--help', action='help', default=argparse.SUPPRESS,
-                        help='Show this help message and exit.')
+                       help='Show this help message and exit.')
     group.add_argument('-l', '--list', action='store_true', help='List event channel names accessible to current '
                                                                  'user. Some channels need Admin rights.')
     group.add_argument('-e', '--print_config', action='store_true', help='Print effective config end exit.')
     group.add_argument('-t', '--tail', action='store_true', help='Tail events to stdout, format is single line JSON')
-    parser.add_argument('-p', '--persistent', action='store_true', help='Remember last tailed event for each channel and '
-                                                                    'tail only new events after restart.', default=None)
+    parser.add_argument('-p', '--persistent', action='store_true',
+                        help='Remember last tailed event for each channel and '
+                             'tail only new events after restart.', default=None)
     parser.add_argument('-c', '--config', dest='config_file', help='Config file path, file format: yaml',
                         type=argparse.FileType('r'),
                         metavar='filepath')
     parser.add_argument('-n', '--name', help='Tailer name. Also defines where to look for config: '
-                                             'Tailers/<name> in yaml file; TAILER_CONFIG_<name> in env var (yaml)',
+                                             'winevt-tailer/<name> in yaml file; TAILER_CONFIG_<name> and '
+                                             'TAILER_LOGGING_<name> in env vars (as yaml string)',
                         type=lambda val: str_regex_type(val, regex_str=r'^[^\s]+$'), default='tailer1')
     parser.add_argument('-b', '--lookback', type=int, help='Defines how many old events to tail for new/modified '
                                                            'channels. -1 means all available events ('
                                                            'default). Only for channels without persisted state.')
-    parser.add_argument('--logging-yaml', help='Logging config as yaml string',
-                        type=yaml_regex_type)
     parser.add_argument('--config-yaml', help='Tailer config as yaml string',
+                        type=yaml_regex_type)
+    parser.add_argument('--logging-yaml', help='Logging config as yaml string',
                         type=yaml_regex_type)
     #
     if argv is None:

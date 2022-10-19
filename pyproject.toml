@@ -33,6 +33,8 @@ pytest-cov = "^2.11.1"
 taskipy = "^1.6.0"
 python-semantic-release = "^7.16.1"
 pyinstaller = "^5.4.1"
+tomlkit = "^0.11.5"
+pyinstaller-versionfile = "^2.0.0"
 
 [tool.taskipy.tasks]
 pre_test = "mkdir -p coverage"
@@ -42,7 +44,8 @@ lint = "flake8 --doctests"
 "lint:fix" =  "yapf -r -i winevt-tailer scripts tests"
 "post_lint:fix" = "task lint"
 release = "semantic-release publish"
-create_exe = "pyinstaller.exe --clean --specpath ./build --name winevt-tailer --copy-metadata winevt_tailer --hidden-import winevt_tailer.transforms --onefile winevt_tailer/main.py"
+create_version_file = "python scripts/pyinstaller_utils.py ./pyproject.toml ./build/version_file.txt"
+create_exe = "pyinstaller.exe --clean --specpath ./build --distpath ./build/dist --version-file=version_file.txt  -y --name winevt-tailer --copy-metadata winevt_tailer --hidden-import winevt_tailer.transforms --onefile winevt_tailer/main.py"
 #poetry shell -n;
 
 [build-system]

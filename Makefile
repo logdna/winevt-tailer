@@ -43,7 +43,8 @@ lint-fix: install ## attempt to auto fix linting error and report remaining erro
 	$(POETRY_COMMAND) run task lint:fix
 
 .PHONY:build
-build: install 
+build: install
+	$(POETRY_COMMAND) run task create_version_file 
 	$(POETRY_COMMAND) run task create_exe
 
 .PHONY:package
