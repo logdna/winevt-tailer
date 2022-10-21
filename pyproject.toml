@@ -45,8 +45,8 @@ lint = "flake8 --doctests"
 "lint:fix" =  "yapf -r -i winevt-tailer scripts tests"
 "post_lint:fix" = "task lint"
 release = "semantic-release publish"
-create_version_file = "python scripts/pyinstaller_utils.py ./pyproject.toml ./build/version_file.txt"
-create_exe = "pyinstaller.exe --clean --specpath ./build --distpath ./build/dist --version-file=version_file.txt  -y --name winevt-tailer --copy-metadata winevt_tailer --hidden-import winevt_tailer.transforms --onefile winevt_tailer/main.py"
+create_version_file = "python packaging/pyinstaller_utils.py ./pyproject.toml ./build/version_file.txt"
+create_exe = "pyinstaller.exe --clean --specpath ./build --distpath ./build/dist --version-file=version_file.txt --icon ../packaging/images/Mezmo.ico -y --name winevt-tailer --copy-metadata winevt_tailer --hidden-import winevt_tailer.transforms --onefile winevt_tailer/main.py"
 #poetry shell -n;
 
 [build-system]
