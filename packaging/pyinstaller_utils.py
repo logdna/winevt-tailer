@@ -12,7 +12,7 @@ def create_version_file(toml_file_name, version_file_name):
         company_name="Mezmo Inc.",
         file_description=poetry['description'],
         internal_name=poetry['name'],
-        legal_copyright=','.join(poetry['authors']) + ', ' + poetry['license'] + ' License',
+        legal_copyright='Copyright (c) 2022 Mezmo Inc.',
         original_filename=poetry['name'] + ".exe",
         product_name=poetry['description']
     )
