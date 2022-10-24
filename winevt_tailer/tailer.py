@@ -15,6 +15,9 @@ class Tailer:
         self.is_exit = False
         self.config = config
         self.log = logging.getLogger(name)
+        self.tail_out = logging.getLogger('tail_out')
+        self.tail_out.propagate = False
+        # max number of channels per tailer is limited
         if len(config.channels) > win32event.MAXIMUM_WAIT_OBJECTS:
             raise errors.ConfigError(
                 f'Too many channels - {len(config.channels)}. Maximum supported - {win32event.MAXIMUM_WAIT_OBJECTS}')
@@ -135,12 +138,12 @@ class Tailer:
         for xform in self.channel_transforms[ch_idx]:
             event_obj = xform(self.context, event_h, event_obj)
             if event_obj is None:
-                return False
+                return False # skipped
         # apply common transforms
         for xform in self.final_transforms:
             event_obj = xform(self.context, event_h, event_obj)
             if event_obj is None:
-                return False
-        # print to stdout
-        print(event_obj)
+                return False # skipped
+        # print to tailer output configured in logging config
+        self.tail_out.info(event_obj)
         return True

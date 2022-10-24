@@ -119,7 +119,7 @@ def get_config(args: object) -> (dict, dict):
         (dict,dict): returns tailer_config_dict, logging_config_dict
     """
     tailer_config_dict = yaml.safe_load(const.DEFAULT_TAILER_CONFIG)
-    logging_config_dict = yaml.safe_load(const.DEFAULT_LOGGING_CONFIG)
+    logging_config_dict = yaml.safe_load(const.DEFAULT_LOGGING_CONFIG.format(args.name))
     # load from file
     if args.config_file:
         with args.config_file as f:

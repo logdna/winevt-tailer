@@ -18,15 +18,35 @@ disable_existing_loggers: true
 formatters:
   simple:
     format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+  msg_only:
+    format: '%(message)s'
 handlers:
-  console:
+  stdout: # tailing out
+    class: logging.StreamHandler
+    level: INFO
+    formatter: msg_only
+    stream: ext://sys.stdout
+  stderr: # general log
     class: logging.StreamHandler
     level: INFO
     formatter: simple
     stream: ext://sys.stderr
-root:
-  level: DEBUG
-  handlers: [console]
+  file:  # tailing out
+    class: logging.handlers.RotatingFileHandler
+    formatter: msg_only
+    filename: "c:/ProgramData/logs/windows-{0}.log"    
+    level: INFO
+    formatter: msg_only
+    maxBytes: 1000000 
+    backupCount: 1
+    encoding: utf8
+loggers:
+  tail_out:
+      level: INFO
+      handlers: [stdout, file]
+root:   # general log
+  level: INFO
+  handlers: [stderr]
 '''
 
 XSLT_XML_TO_JSON = '''\
