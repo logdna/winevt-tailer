@@ -49,7 +49,7 @@ def parse_cmd_args(argv=None):
     group.add_argument('-t', '--tail', action='store_true', help='Tail events to stdout, format is single line JSON')
     parser.add_argument('-p', '--persistent', action='store_true',
                         help='Remember last tailed event for each channel and '
-                             'tail only new events after restart.', default=None)
+                             'tail only new events after restart. Default: off', default=None)
     parser.add_argument('-c', '--config', dest='config_file', help='Config file path, file format: yaml',
                         type=argparse.FileType('r'),
                         metavar='filepath')
@@ -85,10 +85,10 @@ class ChannelConfig(pydantic.BaseModel):
 
 class TailerConfig(pydantic.BaseModel):
     channels: List[ChannelConfig]
-    bookmarks_dir: str = "."  # default: current working directory
+    bookmarks_dir: str = "."  # current working directory
     bookmarks_commit_s: int = 10  # seconds
-    lookback: int = -1  # start-at-oldest, all old events
-    persistent = False  # remember last tailed event
+    lookback: int = 0  # tail new events
+    persistent = False  # don't bookmark last tailed events
     transforms: List[PyObject] = ['winevt_tailer.transforms.xml_remove_binary',
                                   'winevt_tailer.transforms.xml_render_message',
                                   'winevt_tailer.transforms.xml_to_json']

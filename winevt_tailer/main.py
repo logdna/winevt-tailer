@@ -26,13 +26,11 @@ def main() -> int:
     # by default log goes to stderr
     logging.config.dictConfig(logging_config_dict)
 
-    if args.lookback:  # args always override config
-        if args.lookback < 0:
-            tailer_config_dict['lookback'] = sys.maxsize
-        else:
-            tailer_config_dict['lookback'] = args.lookback
-    if args.persistent:
-        tailer_config_dict['persistent'] = True
+    # args if present always override config
+    if args.lookback is not None:
+        tailer_config_dict['lookback'] = args.lookback
+    if args.persistent is not None:
+        tailer_config_dict['persistent'] = args.persistent
 
     # print effective config to stdout and exit
     if args.print_config:

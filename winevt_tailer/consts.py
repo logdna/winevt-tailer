@@ -4,7 +4,7 @@ channels:
      query: "*"
    - name: System
      query: "*"
-lookback: -1           # start-at-oldest
+lookback: 0            # no lookback, new events only
 bookmarks_file: null   # bookmarks not used
 transforms:
     - winevt_tailer.transforms.xml_remove_binary
@@ -37,7 +37,7 @@ handlers:
     filename: "c:/ProgramData/logs/windows-{0}.log"    
     level: INFO
     formatter: msg_only
-    maxBytes: 1000000 
+    maxBytes: 100000000 
     backupCount: 1
     encoding: utf8
 loggers:

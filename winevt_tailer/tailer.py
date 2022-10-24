@@ -1,4 +1,5 @@
 import os
+import sys
 import logging
 import time
 import win32evtlog, win32event, win32con
@@ -25,7 +26,9 @@ class Tailer:
         self.channel_transforms = [channel.transforms for channel in config.channels]
         self.final_transforms = config.transforms
         self.signals = [win32event.CreateEvent(None, 0, 0, None) for _ in config.channels]
-        if config.persistent:
+        if self.config.lookback < 0:
+            self.config.lookback = sys.maxsize
+        if self.config.persistent:
             os.makedirs(config.bookmarks_dir, exist_ok=True)
             self.bookmarks_filename = os.path.join(config.bookmarks_dir, f'winevt-tailer-{name}.bookmarks')
         else:
@@ -48,43 +51,57 @@ class Tailer:
             qry = win32evtlog.EvtQuery(channel.name, win32evtlog.EvtQueryForwardDirection, channel.query)
             qrys.append(qry)
         del qry
-        # old events loop
+        # tail old events if any and subscribe
+        subs = []  # subscriptions
         for ch_idx in range(0, len(self.config.channels)):
             last_event_h = None
+            fetch_old_events = False
             # try to seek to bookmark with fallback to lookback if enabled
             try:
-                win32evtlog.EvtSeek(qrys[ch_idx], 0, win32evtlog.EvtSeekRelativeToBookmark | win32evtlog.EvtSeekStrict, self.bookmarks[ch_idx])
+                win32evtlog.EvtSeek(qrys[ch_idx], 0, win32evtlog.EvtSeekRelativeToBookmark | win32evtlog.EvtSeekStrict,
+                                    self.bookmarks[ch_idx])
+                fetch_old_events = True
             except Exception as ex:
-                if self.config.lookback:
-                    win32evtlog.EvtSeek(qrys[ch_idx], -self.config.lookback, win32evtlog.EvtSeekRelativeToLast)
+                if self.config.lookback > 0:
+                    win32evtlog.EvtSeek(qrys[ch_idx], -(self.config.lookback - 1), win32evtlog.EvtSeekRelativeToLast)
+                    fetch_old_events = True
                 pass
             # fetch old events
-            while True:
-                if self.is_exit:
-                    return 0
-                events = win32evtlog.EvtNext(qrys[ch_idx], Count=50, Timeout=100)
-                if len(events) == 0:
-                    break
-                for event_h in events:
-                    if self.handle_event(ch_idx, event_h):  # False means event was ignored
-                        last_event_h = event_h
-                del events
-            if last_event_h:  # last event if any
-                win32evtlog.EvtUpdateBookmark(self.bookmarks[ch_idx], last_event_h)
-                self.bookmarks_update_ts = time.monotonic()
+            if fetch_old_events:
+                while True:
+                    if self.is_exit:
+                        return 0
+                    events = win32evtlog.EvtNext(qrys[ch_idx], Count=50, Timeout=100)
+                    if len(events) == 0:
+                        break
+                    for event_h in events:
+                        if self.handle_event(ch_idx, event_h):  # False means event was ignored
+                            last_event_h = event_h
+                    del events
+                if last_event_h:  # last event if any
+                    win32evtlog.EvtUpdateBookmark(self.bookmarks[ch_idx], last_event_h)
+                    self.bookmarks_update_ts = time.monotonic()
+                # subscribe after bookmark
+                channel = self.config.channels[ch_idx]
+                sub = win32evtlog.EvtSubscribe(
+                    channel.name,
+                    win32evtlog.EvtSubscribeStartAfterBookmark,
+                    Bookmark=self.bookmarks[ch_idx],
+                    SignalEvent=self.signals[ch_idx],
+                    Query=channel.query
+                )
+                subs.append(sub)
+            else:
+                # subscribe to new events
+                channel = self.config.channels[ch_idx]
+                sub = win32evtlog.EvtSubscribe(
+                    channel.name,
+                    win32evtlog.EvtSubscribeToFutureEvents,
+                    SignalEvent=self.signals[ch_idx],
+                    Query=channel.query
+                )
+                subs.append(sub)
         del qrys
-        # subscribe to channels for events after bookmarks
-        subs = []
-        for ch_idx in range(0, len(self.config.channels)):
-            channel = self.config.channels[ch_idx]
-            sub = win32evtlog.EvtSubscribe(
-                channel.name,
-                win32evtlog.EvtSubscribeStartAfterBookmark,
-                Bookmark=self.bookmarks[ch_idx],
-                SignalEvent=self.signals[ch_idx],
-                Query=channel.query
-            )
-            subs.append(sub)
         # fetch new events before waiting
         for ch_idx in range(0, len(self.config.channels)):
             last_event_h = None
@@ -138,12 +155,12 @@ class Tailer:
         for xform in self.channel_transforms[ch_idx]:
             event_obj = xform(self.context, event_h, event_obj)
             if event_obj is None:
-                return False # skipped
+                return False  # skipped
         # apply common transforms
         for xform in self.final_transforms:
             event_obj = xform(self.context, event_h, event_obj)
             if event_obj is None:
-                return False # skipped
+                return False  # skipped
         # print to tailer output configured in logging config
         self.tail_out.info(event_obj)
         return True
