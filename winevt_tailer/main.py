@@ -1,7 +1,9 @@
 import sys
+import os
 import signal
 import winevt_tailer.opts as opts
 import winevt_tailer.utils as utils
+import winevt_tailer.consts as consts
 from winevt_tailer.tailer import Tailer
 import logging.config
 
@@ -23,7 +25,8 @@ def main() -> int:
     tailer_config_dict, logging_config_dict = opts.get_config(args)
 
     # configure logging
-    # by default log goes to stderr
+    # create default log folder
+    os.makedirs(consts.DEFAULT_LOG_DIR, exist_ok=True)
     logging.config.dictConfig(logging_config_dict)
 
     # args if present always override config

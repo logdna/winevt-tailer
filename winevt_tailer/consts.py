@@ -12,7 +12,9 @@ transforms:
     - winevt_tailer.transforms.xml_to_json
 '''
 
-DEFAULT_LOGGING_CONFIG = '''\
+DEFAULT_LOG_DIR = 'c:/ProgramData/logs'
+
+DEFAULT_LOGGING_CONFIG = f'''\
 version: 1
 disable_existing_loggers: true
 formatters:
@@ -34,7 +36,7 @@ handlers:
   file:  # tailing out
     class: logging.handlers.RotatingFileHandler
     formatter: msg_only
-    filename: "c:/ProgramData/logs/windows-{0}.log"    
+    filename: "''' + DEFAULT_LOG_DIR + '''/windows-{0}.log"    
     level: INFO
     formatter: msg_only
     maxBytes: 100000000 
