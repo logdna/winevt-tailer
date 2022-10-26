@@ -34,12 +34,12 @@ handlers:
     formatter: simple
     stream: ext://sys.stderr
   file:  # tailing out
-    class: logging.handlers.RotatingFileHandler
+    class: winevt_tailer.utils.RotatingFileHandler
     formatter: msg_only
     filename: "''' + DEFAULT_LOG_DIR + '''/windows-{0}.log"    
     level: INFO
     formatter: msg_only
-    maxBytes: 100000000 
+    maxBytes: 10000000 
     backupCount: 1
     encoding: utf8
 loggers:

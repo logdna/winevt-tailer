@@ -57,9 +57,10 @@ def parse_cmd_args(argv=None):
                                              'winevt-tailer/<name> in yaml file; TAILER_CONFIG_<name> and '
                                              'TAILER_LOGGING_<name> in env vars (as yaml string)',
                         type=lambda val: str_regex_type(val, regex_str=r'^[^\s]+$'), default='tailer1')
-    parser.add_argument('-b', '--lookback', type=int, help='Defines how many old events to tail for new/modified '
-                                                           'channels. -1 means all available events ('
-                                                           'default). Only for channels without persisted state.')
+    parser.add_argument('-b', '--lookback', type=int, help='Defines how many old events to tail. -1 means all '
+                                                           'available events. default is 0. Applicable only to '
+                                                           'channels without persisted state or when  without "-p" '
+                                                           'argument')
     parser.add_argument('--config-yaml', help='Tailer config as yaml string',
                         type=yaml_regex_type)
     parser.add_argument('--logging-yaml', help='Logging config as yaml string',

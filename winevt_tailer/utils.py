@@ -1,7 +1,9 @@
 import json
 import os
+import uuid
 import lxml
 import yaml
+import logging.handlers
 from lxml import etree
 import win32evtlog, win32event, win32file
 import winevt_tailer.errors as errors
@@ -46,6 +48,37 @@ def replace_file(src_file_name: str, dest_file_name: str):
     if not os.path.isfile(dest_file_name):
         open(dest_file_name, 'a').close()
     win32file.ReplaceFile(src_file_name, dest_file_name)
+
+
+def park_and_delete_file(file_name: str):
+    park_name = file_name + '.' + str(uuid.uuid1())[0:5]
+    os.rename(file_name, park_name)
+    if os.path.exists(park_name):
+        os.remove(park_name)
+
+
+class RotatingFileHandler(logging.handlers.RotatingFileHandler):
+    def doRollover(self):
+        """
+        Do a rollover, as described in __init__().
+        """
+        if self.stream:
+            self.stream.close()
+            self.stream = None
+        if self.backupCount > 0:
+            for i in range(self.backupCount - 1, 0, -1):
+                sfn = self.rotation_filename("%s.%d" % (self.baseFilename, i))
+                dfn = self.rotation_filename("%s.%d" % (self.baseFilename, i + 1))
+                if os.path.exists(sfn):
+                    if os.path.exists(dfn):
+                        park_and_delete_file(dfn)
+                    os.rename(sfn, dfn)
+            dfn = self.rotation_filename(self.baseFilename + ".1")
+            if os.path.exists(dfn):
+                park_and_delete_file(dfn)
+            self.rotate(self.baseFilename, dfn)
+        if not self.delay:
+            self.stream = self._open()
 
 
 def store_bookmarks(file_name: str, bookmarks: list, channels: list):
