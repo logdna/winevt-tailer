@@ -67,6 +67,8 @@ def parse_cmd_args(argv=None):
                         type=yaml_regex_type)
     parser.add_argument('-s', '--startup_hello', action='store_true',
                         help='Output startup hello line. Default: off', default=None)
+    parser.add_argument('-x', '--exit_after_lookback', action='store_true',
+                        help='Output old events and exit. Default: off, "follow" mode', default=None)
     #
     if argv is None:
         argv = sys.argv[1:]
@@ -96,6 +98,7 @@ class TailerConfig(pydantic.BaseModel):
                                   'winevt_tailer.transforms.xml_render_message',
                                   'winevt_tailer.transforms.xml_to_json']
     startup_hello = False
+    exit_after_lookback = False  # exit after printing old events
 
 
 def parse_tailer_config(config_dict):

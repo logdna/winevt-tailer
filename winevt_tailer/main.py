@@ -36,6 +36,8 @@ def main() -> int:
         tailer_config_dict['persistent'] = args.persistent
     if args.startup_hello is not None:
         tailer_config_dict['startup_hello'] = args.startup_hello
+    if args.exit_after_lookback is not None:
+        tailer_config_dict['exit_after_lookback'] = args.exit_after_lookback
 
     # print effective config to stdout and exit
     if args.print_config:

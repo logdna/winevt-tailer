@@ -70,7 +70,7 @@ class Tailer:
                     win32evtlog.EvtSeek(qrys[ch_idx], -(self.config.lookback - 1), win32evtlog.EvtSeekRelativeToLast)
                     fetch_old_events = True
                 pass
-            # fetch old events
+            # fetch & handle old events
             if fetch_old_events:
                 while True:
                     if self.is_exit:
@@ -106,7 +106,10 @@ class Tailer:
                 )
                 subs.append(sub)
         del qrys
-        # fetch new events before waiting
+        # exit after old events printed?
+        if self.config.exit_after_lookback or self.is_exit:
+            exit(0)
+        # fetch & handle new events before waiting
         for ch_idx in range(0, len(self.config.channels)):
             last_event_h = None
             while True:
@@ -138,7 +141,7 @@ class Tailer:
                 if win32con.WAIT_OBJECT_0 <= signaled < win32con.WAIT_OBJECT_0 + win32event.MAXIMUM_WAIT_OBJECTS:
                     ch_idx = signaled - win32con.WAIT_OBJECT_0
                     break
-            # fetch new events from signalled channel
+            # fetch & handle new events from signalled channel
             last_event_h = None
             while True:
                 events = win32evtlog.EvtNext(subs[ch_idx], Count=50, Timeout=100)
