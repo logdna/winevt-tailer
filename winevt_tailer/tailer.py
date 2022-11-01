@@ -5,6 +5,7 @@ import time
 import win32evtlog, win32event, win32con
 import winevt_tailer.opts as opts
 import winevt_tailer.utils as utils
+import winevt_tailer.consts as consts
 import winevt_tailer.errors as errors
 from lxml import etree
 
@@ -44,6 +45,9 @@ class Tailer:
         self.is_exit = is_exit
 
     def run(self) -> int:
+        # print startup hello
+        if self.config.startup_hello:
+            self.tail_out.info(consts.STARTUP_HELLO % self.name)
         # query old events
         qrys = []
         for ch_idx in range(0, len(self.config.channels)):

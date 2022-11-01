@@ -61,10 +61,12 @@ def parse_cmd_args(argv=None):
                                                            'available events. default is 0. Applicable only to '
                                                            'channels without persisted state or when  without "-p" '
                                                            'argument')
-    parser.add_argument('--config-yaml', help='Tailer config as yaml string',
+    parser.add_argument('--config_yaml', help='Tailer config as yaml string',
                         type=yaml_regex_type)
-    parser.add_argument('--logging-yaml', help='Logging config as yaml string',
+    parser.add_argument('--logging_yaml', help='Logging config as yaml string',
                         type=yaml_regex_type)
+    parser.add_argument('-s', '--startup_hello', action='store_true',
+                        help='Output startup hello line. Default: off', default=None)
     #
     if argv is None:
         argv = sys.argv[1:]
@@ -93,6 +95,7 @@ class TailerConfig(pydantic.BaseModel):
     transforms: List[PyObject] = ['winevt_tailer.transforms.xml_remove_binary',
                                   'winevt_tailer.transforms.xml_render_message',
                                   'winevt_tailer.transforms.xml_to_json']
+    startup_hello = False
 
 
 def parse_tailer_config(config_dict):
@@ -145,5 +148,4 @@ def get_config(args: object) -> (dict, dict):
         logging_config_dict.update(yaml.safe_load(logging_env))
     if args.logging_yaml:  # logging config as yaml string
         logging_config_dict.update(yaml.safe_load(args.logging_yaml))
-
     return tailer_config_dict, logging_config_dict

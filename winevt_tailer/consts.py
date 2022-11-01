@@ -1,3 +1,6 @@
+# API version 1, no crc appended to log lines, no ACKs expected on stdin
+STARTUP_HELLO = '{"type":"winevt_tailer","name":"%s","version":1,"crc":false,"acks":false}'
+
 DEFAULT_TAILER_CONFIG = '''\
 channels:
    - name: Application
