@@ -61,12 +61,16 @@ def main() -> int:
     assert args.tail
     tailer_config = opts.parse_tailer_config(tailer_config_dict)
     tailer = Tailer(args.name, tailer_config)
-    signal.signal(signal.SIGINT, lambda signum, frame: signal_handler(signum, frame, tailer))
+    # setup signal handler
+    utils.setup_exit_signal_handler(lambda signum: exit_signal_handler(signum, tailer))
+    # run tailer main loop
     exit_code = tailer.run()
     return exit_code
 
 
-def signal_handler(signum, frame, tailer):
+def exit_signal_handler(signum, tailer):
+    if tailer.is_exit:
+        return
     tailer.set_exit(True)
     print('Exiting ...', file=sys.stderr)
 

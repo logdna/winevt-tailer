@@ -3,10 +3,21 @@ import os
 import uuid
 import lxml
 import yaml
+import signal
 import logging.handlers
 from lxml import etree
-import win32evtlog, win32event, win32file
+import win32evtlog, win32event, win32file, win32api
 import winevt_tailer.errors as errors
+
+
+def dummy_signal_handler(_: int):
+    pass
+
+
+def setup_exit_signal_handler(signal_handler: type(dummy_signal_handler)):
+    signal.signal(signal.SIGINT, lambda signum, _: signal_handler(signum))
+    signal.signal(signal.SIGBREAK, lambda signum, _: signal_handler(signum))
+    win32api.SetConsoleCtrlHandler(signal_handler, True)  # to catch windows shutdown
 
 
 def is_valid_xpath(s) -> bool:

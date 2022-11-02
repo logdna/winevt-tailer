@@ -45,7 +45,11 @@ class Tailer:
         self.is_exit = is_exit
 
     def run(self) -> int:
-        # print startup hello
+        """
+        This is main loop. Any error or exception is fatal. Exits on self.is_exit set in main by
+        exit signal handler.
+        """
+        # output startup hello
         if self.config.startup_hello:
             self.tail_out.info(consts.STARTUP_HELLO % self.name)
         # query old events
