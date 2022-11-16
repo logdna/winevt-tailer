@@ -28,7 +28,7 @@ formatters:
   msg_only:
     format: '%(message)s'
 handlers:
-  stdout: # tailing out
+  stdout: # tailing output
     class: logging.StreamHandler
     level: INFO
     formatter: msg_only
@@ -38,7 +38,7 @@ handlers:
     level: INFO
     formatter: simple
     stream: ext://sys.stderr
-  file:  # tailing out
+  file:  # tailing output
     class: winevt_tailer.utils.RotatingFileHandler
     formatter: msg_only
     filename: "''' + DEFAULT_LOG_DIR + '''/windows-{0}.log"    
