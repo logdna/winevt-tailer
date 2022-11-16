@@ -45,30 +45,23 @@ def parse_cmd_args(argv=None):
     group.add_argument('-l', '--list', action='store_true', help='List event channel names accessible to current '
                                                                  'user. Some channels may need Admin rights.')
     group.add_argument('-e', '--print_config', action='store_true', help='Print effective config end exit.')
-
     parser.add_argument('-f', '--follow', action='store_true', help='Follow and output new events as they arrive.')
     parser.add_argument('-p', '--persistent', action='store_true',
                         help='Remember last tailed event for each channel and '
                              'tail only new events after restart. Default: off', default=None)
     parser.add_argument('-c', '--config', dest='config_file', help='Config file path, file format: yaml',
-                        type=argparse.FileType('r'),
-                        metavar='filepath')
+                        type=argparse.FileType('r'), metavar='filepath')
     parser.add_argument('-n', '--name', help='Tailer name. Also defines where to look for config: '
                                              'winevt-tailer/<name> in yaml file; TAILER_CONFIG_<name> and '
                                              'TAILER_LOGGING_<name> in env vars (as yaml string)',
                         type=lambda val: str_regex_type(val, regex_str=r'^[^\s]+$'), default='tailer1')
     parser.add_argument('-b', '--lookback', type=int, help='Defines how many old events to tail. -1 means all '
                                                            f'available events. default is {consts.DEAFULT_LOOKBACK}. '
-                                                           'Applicable only to channels without persisted state or '
-                                                           'when  without "-p" argument')
-    parser.add_argument('--config_yaml', help='Tailer config as yaml string',
-                        type=yaml_regex_type)
-    parser.add_argument('--logging_yaml', help='Logging config as yaml string',
-                        type=yaml_regex_type)
+                                                           'Applicable only to channels without persisted state')
+    parser.add_argument('--config_yaml', help='Tailer config as yaml string', type=yaml_regex_type)
+    parser.add_argument('--logging_yaml', help='Logging config as yaml string', type=yaml_regex_type)
     parser.add_argument('-s', '--startup_hello', action='store_true',
                         help='Output startup hello line. Default: off', default=None)
-    parser.add_argument('-x', '--exit_after_lookback', action='store_true',
-                        help='Output old events and exit. Default: off, "follow" mode', default=None)
     #
     if argv is None:
         argv = sys.argv[1:]
@@ -93,7 +86,7 @@ class TailerConfig(pydantic.BaseModel):
     bookmarks_dir: str = "."  # current working directory
     bookmarks_commit_s: int = 10  # seconds
     lookback: int = consts.DEAFULT_LOOKBACK  # number of old events to tail per channel,
-                                             # 0 - no lookback, only new events
+    # 0 - no lookback, only new events
     persistent = False  # don't bookmark last tailed events ids
     transforms: List[PyObject] = ['winevt_tailer.transforms.xml_remove_binary',
                                   'winevt_tailer.transforms.xml_render_message',

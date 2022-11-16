@@ -1,9 +1,11 @@
 from tomlkit.toml_file import TOMLFile
 import pyinstaller_versionfile
 import sys
+import os
 
 
 def create_version_file(toml_file_name, version_file_name):
+    os.makedirs(os.path.dirname(version_file_name), exist_ok=True)
     toml_doc = TOMLFile(toml_file_name).read()
     poetry = toml_doc.value['tool']['poetry']
     pyinstaller_versionfile.create_versionfile(

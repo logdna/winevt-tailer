@@ -112,7 +112,7 @@ class Tailer:
         del qrys
         # exit after old events printed?
         if self.config.exit_after_lookback or self.is_exit:
-            exit(0)
+            sys.exit(0)
         # fetch & handle new events before waiting
         for ch_idx in range(0, len(self.config.channels)):
             last_event_h = None
