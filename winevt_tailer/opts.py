@@ -56,12 +56,12 @@ def parse_cmd_args(argv=None):
                                              'TAILER_LOGGING_<name> in env vars (as yaml string)',
                         type=lambda val: str_regex_type(val, regex_str=r'^[^\s]+$'), default='tailer1')
     parser.add_argument('-b', '--lookback', type=int, help='Defines how many old events to tail. -1 means all '
-                                                           f'available events. default is {consts.DEAFULT_LOOKBACK}. '
+                                                           f'available events. default is {consts.DEFAULT_LOOKBACK}. '
                                                            'Applicable only to channels without persisted state')
     parser.add_argument('--config_yaml', help='Tailer config as yaml string', type=yaml_regex_type)
     parser.add_argument('--logging_yaml', help='Logging config as yaml string', type=yaml_regex_type)
     parser.add_argument('-s', '--startup_hello', action='store_true',
-                        help='Output startup hello line. Default: off', default=None)
+                        help='Output Startup Hello line. Part of Mezmo Agent Tailer API. Default: off', default=None)
     #
     if argv is None:
         argv = sys.argv[1:]
@@ -85,7 +85,7 @@ class TailerConfig(pydantic.BaseModel):
     channels: List[ChannelConfig]
     bookmarks_dir: str = "."  # current working directory
     bookmarks_commit_s: int = 10  # seconds
-    lookback: int = consts.DEAFULT_LOOKBACK  # number of old events to tail per channel,
+    lookback: int = consts.DEFAULT_LOOKBACK  # number of old events to tail per channel,
     # 0 - no lookback, only new events
     persistent = False  # don't bookmark last tailed events ids
     transforms: List[PyObject] = ['winevt_tailer.transforms.xml_remove_binary',

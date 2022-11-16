@@ -1,8 +1,9 @@
 
-DEAFULT_LOOKBACK = 100  # per channel
+DEFAULT_LOOKBACK = 100  # per channel
 
 # API version 1, no crc appended to log lines, no ACKs expected on stdin
-STARTUP_HELLO = '{"type":"winevt_tailer","name":"%s","version":1,"crc":false,"acks":false}'
+STARTUP_HELLO = '{"Tailer":{"name":"%s","type":"winevt_tailer","version":1,"payload":"JSON","crc":false,' \
+                '"acks":false}}\n '
 
 DEFAULT_TAILER_CONFIG = '''\
 channels:
