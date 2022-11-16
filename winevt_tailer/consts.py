@@ -1,3 +1,6 @@
+
+DEAFULT_LOOKBACK = 100  # per channel
+
 # API version 1, no crc appended to log lines, no ACKs expected on stdin
 STARTUP_HELLO = '{"type":"winevt_tailer","name":"%s","version":1,"crc":false,"acks":false}'
 
@@ -7,8 +10,6 @@ channels:
      query: "*"
    - name: System
      query: "*"
-lookback: 0            # no lookback, new events only
-bookmarks_file: null   # bookmarks not used
 transforms:
     - winevt_tailer.transforms.xml_remove_binary
     - winevt_tailer.transforms.xml_render_message

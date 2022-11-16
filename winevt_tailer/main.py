@@ -36,8 +36,8 @@ def main() -> int:
         tailer_config_dict['persistent'] = args.persistent
     if args.startup_hello is not None:
         tailer_config_dict['startup_hello'] = args.startup_hello
-    if args.exit_after_lookback is not None:
-        tailer_config_dict['exit_after_lookback'] = args.exit_after_lookback
+    if args.follow:
+        tailer_config_dict['exit_after_lookback'] = False
 
     # print effective config to stdout and exit
     if args.print_config:
@@ -58,7 +58,6 @@ def main() -> int:
     #  Transform value type is string that represents Python function import path.
     #  Function signature: def transform(context:dict, event:object): object
     #
-    assert args.tail
     tailer_config = opts.parse_tailer_config(tailer_config_dict)
     tailer = Tailer(args.name, tailer_config)
     # setup signal handler
