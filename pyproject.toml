@@ -36,6 +36,7 @@ python-semantic-release = "^7.16.1"
 tomlkit = "^0.11.5"
 pyinstaller = "^5.6.2"
 pyinstaller-versionfile = "^2.0.0"
+tinyaes = "^1.0.4"
 
 [tool.taskipy.tasks]
 pre_test = "mkdir -p coverage"
@@ -46,7 +47,7 @@ lint = "flake8 --doctests"
 "post_lint:fix" = "task lint"
 release = "semantic-release publish"
 create_version_file = "python packaging/pyinstaller_utils.py ./pyproject.toml ./build/version_file.txt"
-create_exe = "pyinstaller.exe --clean --specpath ./build --distpath ./build/dist --version-file=version_file.txt --icon ../packaging/images/Mezmo.ico -y --name winevt-tailer --copy-metadata winevt_tailer --hidden-import winevt_tailer.transforms --onefile winevt_tailer/main.py"
+create_exe = "pyinstaller.exe --clean --key Mezmo --specpath ./build --distpath ./build/dist --version-file=version_file.txt --icon ../packaging/images/Mezmo.ico -y --name winevt-tailer --copy-metadata winevt_tailer --hidden-import winevt_tailer.transforms --onefile winevt_tailer/main.py"
 #poetry shell -n;
 
 [build-system]

@@ -745,6 +745,14 @@ psutil = ">=5.7.2,<6.0.0"
 tomli = {version = ">=2.0.1,<3.0.0", markers = "python_version >= \"3.7\" and python_version < \"4.0\""}
 
 [[package]]
+name = "tinyaes"
+version = "1.0.4"
+description = "tiny-AES-c wrapper in Cython"
+category = "dev"
+optional = false
+python-versions = "*"
+
+[[package]]
 name = "toml"
 version = "0.10.2"
 description = "Python Library for Tom's Obvious, Minimal Language"
@@ -857,7 +865,7 @@ testing = ["flake8 (<5)", "func-timeout", "jaraco.functools", "jaraco.itertools"
 [metadata]
 lock-version = "1.1"
 python-versions = "=3.9.12"
-content-hash = "72744aa2e2b7a80f7de0f19895ec3e80f47ec8bf9f294bdd88658712cfa8aac8"
+content-hash = "cf416d2979aebbf8697d48272e04a3cb9b1d15402c0a96c821824d411d633d2d"
 
 [metadata.files]
 altgraph = []
@@ -1274,6 +1282,29 @@ single-source = [
 six = []
 smmap = []
 taskipy = []
+tinyaes = [
+    {file = "tinyaes-1.0.4-cp310-cp310-macosx_10_9_x86_64.whl", hash = "sha256:201dc6d8aea4a65ac88a8ab09dbe0a8151396c4ef73a1a1337e8c2e155a30679"},
+    {file = "tinyaes-1.0.4-cp310-cp310-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:7e8ffb828cafb87f3cbc0c0267998165421d83f8951d2eb83a38c930d193377d"},
+    {file = "tinyaes-1.0.4-cp310-cp310-win32.whl", hash = "sha256:56d7d35241fdc44174703a7993e9c8660f9a748654e4f182646a81281d344959"},
+    {file = "tinyaes-1.0.4-cp310-cp310-win_amd64.whl", hash = "sha256:ead57efc443808ac9169da27206ac42c43c6ef4a88f35cbf16f0b2deb4fd6914"},
+    {file = "tinyaes-1.0.4-cp311-cp311-macosx_10_9_x86_64.whl", hash = "sha256:366746fd7f114d213bde39ebba60bc123f827c955fb95363a1c5c78fbbfaec21"},
+    {file = "tinyaes-1.0.4-cp311-cp311-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:2d3e747d594f12649e1780c067ff91c1ec1f76475f99c902ac2fdf1b3f406750"},
+    {file = "tinyaes-1.0.4-cp311-cp311-win32.whl", hash = "sha256:dfba3946aa4e7155be953e3a2c1c9882c64ad4632b13966bbdb32b85e6d2d6d6"},
+    {file = "tinyaes-1.0.4-cp311-cp311-win_amd64.whl", hash = "sha256:64484915c80eeed7408801d3dee759f81b9fb2ff1cc68bf8544b19b8764d6b77"},
+    {file = "tinyaes-1.0.4-cp37-cp37m-macosx_10_9_x86_64.whl", hash = "sha256:cac3070af2a3101c669fbb11cf5323f1d1a4002a6d93ef946e6f4a8d69c3f84d"},
+    {file = "tinyaes-1.0.4-cp37-cp37m-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:b1e9700838d89a694b89efa41151ca863962cac79b536771bde6fbf795293fee"},
+    {file = "tinyaes-1.0.4-cp37-cp37m-win32.whl", hash = "sha256:654af1dd0bbc57fbd3bbcd3abf1f1a50c25290c89bddf2cecd0128bd7e8099c8"},
+    {file = "tinyaes-1.0.4-cp37-cp37m-win_amd64.whl", hash = "sha256:e675e7ef0876c8d0d0e5a3542e318f433def2949a0be4f161113d38ca592261a"},
+    {file = "tinyaes-1.0.4-cp38-cp38-macosx_10_9_x86_64.whl", hash = "sha256:31afd74faf308226b442050f58812ca113fb172960420e4ad8faef324d63cccc"},
+    {file = "tinyaes-1.0.4-cp38-cp38-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:830acaced065e249e3beb4043aeb44f1301b4e1f2d5153049a63a8695b294d1e"},
+    {file = "tinyaes-1.0.4-cp38-cp38-win32.whl", hash = "sha256:1f3763caf49086fa82310d3270f718d7d143dcb72274b0b771212b828249d6ef"},
+    {file = "tinyaes-1.0.4-cp38-cp38-win_amd64.whl", hash = "sha256:aebd534b9294d5de5a7f916810b93ed00cfa2d091051ddad1d5d813f1ef91954"},
+    {file = "tinyaes-1.0.4-cp39-cp39-macosx_10_9_x86_64.whl", hash = "sha256:92c44cc8247467dde7d785675d590c692ae1d4f127cdd5c9f1b681e33e1fc26e"},
+    {file = "tinyaes-1.0.4-cp39-cp39-manylinux_2_5_x86_64.manylinux1_x86_64.manylinux_2_17_x86_64.manylinux2014_x86_64.whl", hash = "sha256:d470c186c0d28862ad74cbbb21d1ee612e2aa26760e7c7dd5c4a19f74641a11d"},
+    {file = "tinyaes-1.0.4-cp39-cp39-win32.whl", hash = "sha256:b8c836578b1fae1f3be4fd0481bc8f74f0ca0a264345f9cbae560b461cd84dd8"},
+    {file = "tinyaes-1.0.4-cp39-cp39-win_amd64.whl", hash = "sha256:2419501d23d2154ace9b78c5bb55df8b2d6cbdb477968c665d477d16459e7017"},
+    {file = "tinyaes-1.0.4.tar.gz", hash = "sha256:236fc2a1182d425755c1a050cbf571862ee91ad7670eb174e960f35b815c6bcd"},
+]
 toml = []
 tomli = []
 tomlkit = [
