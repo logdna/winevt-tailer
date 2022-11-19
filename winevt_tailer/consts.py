@@ -34,11 +34,6 @@ handlers:
     level: INFO
     formatter: msg_only
     stream: ext://sys.stdout
-  stderr: # general log
-    class: logging.StreamHandler
-    level: INFO
-    formatter: simple
-    stream: ext://sys.stderr
   file:  # tailing output
     class: winevt_tailer.utils.RotatingFileHandler
     formatter: msg_only
@@ -48,13 +43,22 @@ handlers:
     maxBytes: 10000000 
     backupCount: 1
     encoding: utf8
+  file.err:  # tailing output
+    class: winevt_tailer.utils.RotatingFileHandler
+    formatter: msg_only
+    filename: "''' + DEFAULT_LOG_DIR + '''/windows-{0}.err.log"    
+    level: INFO
+    formatter: simple
+    maxBytes: 10000000 
+    backupCount: 1
+    encoding: utf8
 loggers:
   tail_out:
       level: INFO
       handlers: [stdout, file]
 root:   # general log
   level: INFO
-  handlers: [stderr]
+  handlers: [file.err]
 '''
 
 XSLT_XML_TO_JSON = '''\

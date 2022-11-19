@@ -17,7 +17,7 @@ commit_subject = "release: Version {version} [skip ci]"
 commit_author = "LogDNA Bot <bot@logdna.com>"
 
 [tool.poetry.dependencies]
-python = "=3.9.12"
+python = "3.10"
 pywin32 = "^304"
 lxml = "^4.9.1"
 PyYAML = "^6.0"
@@ -38,6 +38,9 @@ tomlkit = "^0.11.5"
 pyinstaller = "^5.6.2"
 pyinstaller-versionfile = "^2.0.0"
 tinyaes = "^1.0.4"
+tomli = "^2.0.1"
+pyinstaller-hooks-contrib = "^2022.13"
+cffi = "^1.15.1"
 
 [tool.taskipy.tasks]
 pre_test = "mkdir -p coverage"
@@ -49,7 +52,7 @@ lint = "flake8 --doctests"
 release = "semantic-release publish"
 create_version_file = "python packaging/pyinstaller_utils.py ./pyproject.toml ./build/version_file.txt"
 create_exe = "pyinstaller.exe --clean --key Mezmo --specpath ./build --distpath ./build/dist --version-file=version_file.txt --icon ../packaging/images/Mezmo.ico -y --name winevt-tailer --copy-metadata winevt_tailer --hidden-import winevt_tailer.transforms --onefile winevt_tailer/main.py"
-#poetry shell -n;
+
 
 [build-system]
 requires = ["poetry>=0.12"]

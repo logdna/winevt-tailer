@@ -1,14 +1,17 @@
 import json
 import os
+import sys
 import uuid
 import lxml
 import yaml
 import signal
 import psutil
+import ctypes
 import logging.handlers
 from lxml import etree
-import win32evtlog, win32event, win32file, win32api
+import win32evtlog, win32event, win32file, win32api, win32process
 import winevt_tailer.errors as errors
+from win32comext.shell import shell
 
 
 def dummy_signal_handler(_: int):
@@ -143,3 +146,23 @@ def is_running_as_service() -> bool:
     return "services.exe" == psutil.Process(os.getppid()).name()
 
 
+def is_admin_user() -> bool:
+    try:
+        is_admin = (os.getuid() == 0)
+    except AttributeError:
+        is_admin = ctypes.windll.shell32.IsUserAnAdmin() != 0
+    return is_admin
+
+def restart_elevated():
+    params = ' '.join(sys.argv[1:])
+    SEE_MASK_NO_CONSOLE = 0x00008000
+    SEE_MASK_NOCLOSE_PROCESS = 0x00000040
+    process = shell.ShellExecuteEx(lpVerb='runas', lpFile=sys.executable, lpParameters=params, fMask=SEE_MASK_NO_CONSOLE|SEE_MASK_NOCLOSE_PROCESS)
+    handle = process['hProcess']
+    if not handle:
+        return process['hInstApp']
+    INFINITE = -1
+    win32event.WaitForSingleObject(handle, INFINITE)
+    exitcode = win32process.GetExitCodeProcess(handle)
+    win32api.CloseHandle(handle)
+    return exitcode
