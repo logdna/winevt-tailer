@@ -1,5 +1,6 @@
 
 DEFAULT_LOOKBACK = 100  # per channel
+DEFAULT_TAILER_NAME = "tailer1"
 
 # API version 1, no crc appended to log lines, no ACKs expected on stdin
 STARTUP_HELLO = '{"Tailer":{"name":"%s","type":"winevt_tailer","version":1,"payload":"JSON","crc":false,' \

@@ -43,7 +43,10 @@ def parse_cmd_args(argv=None):
     group.add_argument('-l', '--list', action='store_true', help='List event channel names accessible to current '
                                                                  'user. Some channels may need Admin rights.')
     group.add_argument('-e', '--print_config', action='store_true', help='Print effective config end exit.')
-    parser.add_argument('-f', '--follow', action='store_true', help='Follow and output new events as they arrive.')
+    group.add_argument('-i', '--install_service', action='store_true', help='Install windows service.')
+    group.add_argument('-u', '--uninstall_service', action='store_true', help='Uninstall windows service.')
+    parser.add_argument('-f', '--follow', action='store_true', help='Follow and output new events as they arrive. '
+                                                                    'True in service mode.')
     parser.add_argument('-p', '--persistent', action='store_true',
                         help='Remember last tailed event for each channel and '
                              'tail only new events after restart. Default: off', default=None)
@@ -52,7 +55,7 @@ def parse_cmd_args(argv=None):
     parser.add_argument('-n', '--name', help='Tailer name. Also defines where to look for config: '
                                              'winevt-tailer/<name> in YAML file; TAILER_CONFIG_<name> and '
                                              'TAILER_LOGGING_<name> in env vars (as YAML string)',
-                        type=lambda val: str_regex_type(val, regex_str=r'^[^\s]+$'), default='tailer1')
+                        type=lambda val: str_regex_type(val, regex_str=r'^[^\s]+$'), default=consts.DEFAULT_TAILER_NAME)
     parser.add_argument('-b', '--lookback', type=int, help='Defines how many old events to tail. -1 means all '
                                                            f'available events. default is {consts.DEFAULT_LOOKBACK}. '
                                                            'Applicable only to channels without persisted state')

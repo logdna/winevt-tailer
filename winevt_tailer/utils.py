@@ -4,6 +4,7 @@ import uuid
 import lxml
 import yaml
 import signal
+import psutil
 import logging.handlers
 from lxml import etree
 import win32evtlog, win32event, win32file, win32api
@@ -136,3 +137,9 @@ def get_effective_config(tailer_name, tailer_config: dict, logging_config: dict)
     config_dict = {'winevt-tailer': {tailer_name: tailer_config, 'logging': logging_config}}
     yaml_str = yaml.dump(config_dict, indent=4)
     return yaml_str
+
+
+def is_running_as_service() -> bool:
+    return "services.exe" == psutil.Process(os.getppid()).name()
+
+

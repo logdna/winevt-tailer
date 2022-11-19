@@ -11,7 +11,19 @@ from lxml import etree
 
 
 class Tailer:
+    """
+    Tailer outputs events as single line JSON to stdout by default.
+    Custom transforms can be applied to events (lxml object) before they get rendered to JSON.
+    Multiple chained transforms can be specified in tailer config as a list:
 
+      transforms: ['xform1', 'xform2' , ...]
+
+      - at channel level, applied first
+      - at tailer level, common transforms, applied last, after channel transforms.
+
+     Transform value type is string that represents Python function import path.
+     Function signature: def transform(context:dict, event:object): object
+    """
     def __init__(self, name, config: opts.TailerConfig):
         self.name = name
         self.is_exit = False
@@ -41,8 +53,11 @@ class Tailer:
         self.bookmarks_commit_ts = 0  # monotonic
         self.bookmarks_update_ts = 0  # monotonic
 
-    def set_exit(self, is_exit):
-        self.is_exit = is_exit
+    def stop(self) -> bool:
+        if self.is_exit:
+            return False
+        self.is_exit = True
+        return True
 
     def run(self) -> int:
         """
