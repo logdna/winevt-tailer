@@ -4,8 +4,10 @@ import win32evtlog
 
 xml_to_json_xform = etree.XSLT(etree.fromstring(const.XSLT_XML_TO_JSON))
 
+
 def xml_to_json(context: dict, event_h, event_obj: object) -> object:
-    event_out = xml_to_json_xform(event_obj)
+    tree_obj = xml_to_json_xform(event_obj)
+    event_out = str(tree_obj).replace("\n", "\\n")  # TODO in XSLT
     return event_out
 
 
@@ -29,7 +31,7 @@ def xml_render_message(context: dict, event_h, event_obj: object) -> object:
     message = ''
     try:
         ns = {'event': 'http://schemas.microsoft.com/win/2004/08/events/event'}
-        provider_name =  event_obj.xpath("//event:Provider/@Name", namespaces=ns)
+        provider_name = event_obj.xpath("//event:Provider/@Name", namespaces=ns)
         metadata = win32evtlog.EvtOpenPublisherMetadata(provider_name[0])
     except Exception:
         # pywintypes.error: (2, 'EvtOpenPublisherMetadata', 'The system cannot find the file specified.')
