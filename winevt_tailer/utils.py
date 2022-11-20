@@ -142,8 +142,23 @@ def get_effective_config(tailer_name, tailer_config: dict, logging_config: dict)
     return yaml_str
 
 
+def get_parent_process(ok_names, limit=10):
+    """
+    Walk up the process tree until we find a process we like.
+    """
+    depth = 0
+    this_proc = psutil.Process(os.getpid())
+    next_proc = psutil.Process(this_proc.ppid())
+    while depth < limit:
+        if next_proc.name().lower() in ok_names:
+            return next_proc
+        next_proc = psutil.Process(next_proc.ppid())
+        depth += 1
+    return None
+
+
 def is_running_as_service() -> bool:
-    return "services.exe" == psutil.Process(os.getppid()).name()
+    return get_parent_process(["services.exe"]) is not None
 
 
 def is_admin_user() -> bool:
@@ -153,11 +168,13 @@ def is_admin_user() -> bool:
         is_admin = ctypes.windll.shell32.IsUserAnAdmin() != 0
     return is_admin
 
+
 def restart_elevated():
     params = ' '.join(sys.argv[1:])
     SEE_MASK_NO_CONSOLE = 0x00008000
     SEE_MASK_NOCLOSE_PROCESS = 0x00000040
-    process = shell.ShellExecuteEx(lpVerb='runas', lpFile=sys.executable, lpParameters=params, fMask=SEE_MASK_NO_CONSOLE|SEE_MASK_NOCLOSE_PROCESS)
+    process = shell.ShellExecuteEx(lpVerb='runas', lpFile=sys.executable, lpParameters=params,
+                                   fMask=SEE_MASK_NO_CONSOLE | SEE_MASK_NOCLOSE_PROCESS)
     handle = process['hProcess']
     if not handle:
         return process['hInstApp']
