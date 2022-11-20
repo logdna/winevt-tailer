@@ -6,6 +6,9 @@ DEFAULT_TAILER_NAME = "tailer1"
 STARTUP_HELLO = '{"Tailer":{"name":"%s","type":"winevt_tailer","version":1,"payload":"JSON","crc":false,' \
                 '"acks":false}}\n '
 
+DEFAULT_LOG_DIR = 'c:/ProgramData/logs'
+DEFAULT_DATA_DIR = 'c:/ProgramData/winevt-tailer'
+
 DEFAULT_TAILER_CONFIG = '''\
 channels:
    - name: Application
@@ -16,11 +19,10 @@ transforms:
     - winevt_tailer.transforms.xml_remove_binary
     - winevt_tailer.transforms.xml_render_message
     - winevt_tailer.transforms.xml_to_json
+bookmarks_dir: "''' + DEFAULT_DATA_DIR + '''"    
 '''
 
-DEFAULT_LOG_DIR = 'c:/ProgramData/logs'
-
-DEFAULT_LOGGING_CONFIG = f'''\
+DEFAULT_LOGGING_CONFIG = '''\
 version: 1
 disable_existing_loggers: true
 formatters:
