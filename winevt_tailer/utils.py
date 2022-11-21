@@ -11,6 +11,7 @@ import logging.handlers
 from lxml import etree
 import win32evtlog, win32event, win32file, win32api, win32process
 import winevt_tailer.errors as errors
+import winevt_tailer.consts as consts
 from win32comext.shell import shell
 
 
@@ -136,8 +137,8 @@ def load_bookmarks(file_name, channels: list) -> list:
     return bookmarks
 
 
-def get_effective_config(tailer_name, tailer_config: dict, logging_config: dict) -> str:
-    config_dict = {'winevt-tailer': {tailer_name: tailer_config, 'logging': logging_config}}
+def compose_effective_config(tailer_name, tailer_config: dict, logging_config: dict) -> str:
+    config_dict = {consts.TAILER_TYPE: {tailer_name: tailer_config, 'logging': logging_config}}
     yaml_str = yaml.dump(config_dict, indent=4)
     return yaml_str
 
@@ -149,11 +150,14 @@ def get_parent_process(ok_names, limit=10):
     depth = 0
     this_proc = psutil.Process(os.getpid())
     next_proc = psutil.Process(this_proc.ppid())
-    while depth < limit:
-        if next_proc.name().lower() in ok_names:
-            return next_proc
-        next_proc = psutil.Process(next_proc.ppid())
-        depth += 1
+    try:
+        while depth < limit:
+            if next_proc.name().lower() in ok_names:
+                return next_proc
+            next_proc = psutil.Process(next_proc.ppid())
+            depth += 1
+    except psutil.NoSuchProcess:
+        pass
     return None
 
 

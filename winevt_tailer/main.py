@@ -4,7 +4,6 @@ import logging.config
 import pywintypes
 import win32serviceutil
 import win32service
-import win32event
 import servicemanager
 import winevt_tailer.opts as opts
 import winevt_tailer.utils as utils
@@ -16,19 +15,20 @@ def main() -> int:
     args = opts.parse_cmd_args()
     assert args.name
     tailer_name = args.name
-    tailer_service_name = f'winevt-tailer.{tailer_name}'
+    tailer_service_name = f'{consts.TAILER_TYPE}_{tailer_name}'
+    is_service = utils.is_running_as_service()
 
-    # print channels to stdout and exit
+    # print windows event channels to stdout and exit
     if args.list:
         channels = utils.get_event_channels()
         for ch in channels:
             print(ch)
         return 0
 
-    # extract config from various sources
-    tailer_config_dict, logging_config_dict = opts.get_config(args)
+    # collect config from various sources
+    tailer_config_dict, logging_config_dict = opts.get_config(args, is_service)
 
-    # args if present always override config
+    # cli args override other config sources
     if args.lookback is not None:
         tailer_config_dict['lookback'] = args.lookback
     if args.persistent is not None:
@@ -40,7 +40,7 @@ def main() -> int:
 
     # print effective config to stdout and exit
     if args.print_config:
-        yaml_str = utils.get_effective_config(tailer_name, tailer_config_dict, logging_config_dict)
+        yaml_str = utils.compose_effective_config(tailer_name, tailer_config_dict, logging_config_dict)
         print(yaml_str)
         return 0
 
@@ -61,10 +61,13 @@ def main() -> int:
 
     # create tailer instance
     tailer = Tailer(tailer_name, tailer_config)
-	
+
     log.info('start')
 
-    if utils.is_running_as_service():
+    if is_service:
+        # service mode
+        yaml_str = utils.compose_effective_config(tailer_name, tailer_config_dict, logging_config_dict)
+        log.info('\n' + yaml_str)
         sys.stdout = sys.stderr = open('nul', 'w')
         TailerService._svc_name_ = tailer_service_name
         TailerService._svc_display_name_ = tailer_service_name
@@ -74,7 +77,7 @@ def main() -> int:
         servicemanager.StartServiceCtrlDispatcher()  # returns when the service has stopped
         exit_code = 0
     else:
-        # run as console app
+        # cli, console mode
         utils.setup_exit_signal_handler(lambda signum: exit_signal_handler(signum, tailer))
         # run tailer main loop
         exit_code = tailer.run()
@@ -95,17 +98,15 @@ class TailerService(win32serviceutil.ServiceFramework):
     def __init__(self, args):
         super().__init__(args)
         self.service_impl = None
-        self.hWaitStop = win32event.CreateEvent(None, 0, 0, None)
 
     def SvcStop(self):
-        # stop the service
+        # trigger stop
         self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)
         self.service_impl.stop()
-        win32event.WaitForSingleObject(self.hWaitStop, win32event.INFINITE)
-        self.ReportServiceStatus(win32service.SERVICE_STOPPED)
 
     def SvcDoRun(self):
         # start the service, does not return until stopped
+        # base class will automatically tell SCM the service has stopped when this returns
         self.service_impl = TailerService._svc_impl
         # run the service
         log = logging.getLogger("service")
@@ -117,7 +118,6 @@ class TailerService(win32serviceutil.ServiceFramework):
             log.info("stopped")
         except Exception as ex:
             log.error(ex)
-        win32event.SetEvent(self.hWaitStop)
 
 
 def install_tailer_service(tailer_service_name) -> int:
@@ -137,10 +137,9 @@ def install_tailer_service(tailer_service_name) -> int:
         pass
     try:
         # remove -i, -u = install & uninstall
-        svc_args = " ".join(
-            [s for s in sys.argv[1:] if s not in ['-i', '--install_service', '-u', '-uninstall_service']])
         #  append -f, -p = follow & persistent
-        svc_args = svc_args.join(['-f', '-p'])
+        svc_args = " ".join(
+            [s for s in sys.argv[1:] if s not in ['-i', '--install_service', '-u', '-uninstall_service']]) + '-f -p'
         win32serviceutil.InstallService(
             None,
             tailer_service_name,
@@ -149,7 +148,7 @@ def install_tailer_service(tailer_service_name) -> int:
             startType=win32service.SERVICE_AUTO_START,
             exeArgs=svc_args,
         )
-        print(f'Service installed: {tailer_service_name}', file=sys.stderr)
+        print(f'Service installed: {tailer_service_name}')
     except win32service.error as ex:
         print(f'{ex}', file=sys.stderr)
         pass
@@ -169,7 +168,7 @@ def uninstall_tailer_service(tailer_service_name) -> int:
             return 1
     try:
         win32serviceutil.RemoveService(tailer_service_name)
-        print(f'Service uninstalled: {tailer_service_name}', file=sys.stderr)
+        print(f'Service uninstalled: {tailer_service_name}')
     except pywintypes.error as ex:
         print(f'{ex}', file=sys.stderr)
         pass

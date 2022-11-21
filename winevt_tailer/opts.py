@@ -37,7 +37,7 @@ def parse_cmd_args(argv=None):
     parser = argparse.ArgumentParser(description='Tails Windows Event logs to stdout in JSON format', add_help=False)
     group = parser.add_mutually_exclusive_group()
     group.add_argument('-v', '--version', action='version',
-                       version=f'winevt-tailer {__version__}', help="Show program version info and exit.")
+                       version=f'{consts.TAILER_TYPE} {__version__}', help="Show program version info and exit.")
     group.add_argument('-h', '--help', action='help', default=argparse.SUPPRESS,
                        help='Show this help message and exit.')
     group.add_argument('-l', '--list', action='store_true', help='List event channel names accessible to current '
@@ -53,7 +53,7 @@ def parse_cmd_args(argv=None):
     parser.add_argument('-c', '--config', dest='config_file', help='Config file path, file format: YAML',
                         type=argparse.FileType('r'), metavar='filepath')
     parser.add_argument('-n', '--name', help='Tailer name. Also defines where to look for config: '
-                                             'winevt-tailer/<name> in YAML file; TAILER_CONFIG_<name> and '
+                                             f'{consts.TAILER_TYPE}/<name> in YAML file; TAILER_CONFIG_<name> and '
                                              'TAILER_LOGGING_<name> in env vars (as YAML string)',
                         type=lambda val: str_regex_type(val, regex_str=r'^[^\s]+$'), default=consts.DEFAULT_TAILER_NAME)
     parser.add_argument('-b', '--lookback', type=int, help='Defines how many old events to tail. -1 means all '
@@ -105,7 +105,7 @@ def parse_tailer_config(config_dict):
     return config
 
 
-def get_config(args: object) -> (dict, dict):
+def get_config(args: object, is_service: bool) -> (dict, dict):
     """
     Collect tailer and logging configs from multiple sources (later overrides former):
     - default build-in
@@ -118,18 +118,24 @@ def get_config(args: object) -> (dict, dict):
         - args.logging_config
     Args:
         args: argparse output
+        is_service: true if running as service
     Returns:
         (dict,dict): returns tailer_config_dict, logging_config_dict
     """
     tailer_config_dict = yaml.safe_load(consts.DEFAULT_TAILER_CONFIG)
-    logging_config_dict = yaml.safe_load(consts.DEFAULT_LOGGING_CONFIG.format(args.name))
+    if is_service:
+        # service log goes to file and tail goes to another file in c:/ProgramData/logs
+        logging_config_dict = yaml.safe_load(consts.DEFAULT_LOGGING_SERVICE.format(args.name))
+    else:
+        # cli mode outputs log to stderr, while stdout used for tail output only
+        logging_config_dict = yaml.safe_load(consts.DEFAULT_LOGGING_CONSOLE.format(args.name))
     # load from file
     if args.config_file:
         with args.config_file as f:
             config_file_dict = yaml.safe_load(f)
-            config_tailers_dict = config_file_dict.get('winevt-tailer')
+            config_tailers_dict = config_file_dict.get(consts.TAILER_TYPE)
             if not config_tailers_dict:
-                raise errors.ConfigError(f'Missing "winevt-tailer" section in config file: {f.name}')
+                raise errors.ConfigError(f'Missing "{consts.TAILER_TYPE}" section in config file: {f.name}')
             tailer_config_dict.update(config_tailers_dict.get(args.name, {}))
             logging_config_dict.update(config_file_dict.get('logging', {}))
     # from env vars and args

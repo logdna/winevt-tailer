@@ -24,6 +24,7 @@ class Tailer:
      Transform value type is string that represents Python function import path.
      Function signature: def transform(context:dict, event:object): object
     """
+
     def __init__(self, name, config: opts.TailerConfig):
         self.name = name
         self.is_exit = False
@@ -43,7 +44,7 @@ class Tailer:
             self.config.lookback = sys.maxsize
         if self.config.persistent:
             os.makedirs(config.bookmarks_dir, exist_ok=True)
-            self.bookmarks_filename = os.path.join(config.bookmarks_dir, f'winevt-tailer-{name}.bookmarks')
+            self.bookmarks_filename = os.path.join(config.bookmarks_dir, f'{consts.TAILER_TYPE}_{name}.bookmarks')
         else:
             self.bookmarks_filename = None
         if config.persistent and os.path.isfile(self.bookmarks_filename):

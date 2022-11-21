@@ -1,13 +1,14 @@
+TAILER_TYPE = "winevt-tailer"
 
 DEFAULT_LOOKBACK = 100  # per channel
-DEFAULT_TAILER_NAME = "tailer1"
+DEFAULT_TAILER_NAME = "tail1"
 
 # API version 1, no crc appended to log lines, no ACKs expected on stdin
-STARTUP_HELLO = '{"Tailer":{"name":"%s","type":"winevt_tailer","version":1,"payload":"JSON","crc":false,' \
+STARTUP_HELLO = '{"Tailer":{"name":"%s","type":'+ TAILER_TYPE + ',"version":1,"payload":"JSON","crc":false,' \
                 '"acks":false}}\n '
 
 DEFAULT_LOG_DIR = 'c:/ProgramData/logs'
-DEFAULT_DATA_DIR = 'c:/ProgramData/winevt-tailer'
+DEFAULT_DATA_DIR = 'c:/ProgramData/' + TAILER_TYPE
 
 DEFAULT_TAILER_CONFIG = '''\
 channels:
@@ -22,7 +23,7 @@ transforms:
 bookmarks_dir: "''' + DEFAULT_DATA_DIR + '''"    
 '''
 
-DEFAULT_LOGGING_CONFIG = '''\
+DEFAULT_LOGGING_SERVICE = '''\
 version: 1
 disable_existing_loggers: true
 formatters:
@@ -31,36 +32,59 @@ formatters:
   msg_only:
     format: '%(message)s'
 handlers:
-  stdout: # tailing output
-    class: logging.StreamHandler
-    level: INFO
-    formatter: msg_only
-    stream: ext://sys.stdout
-  file:  # tailing output
+  file_tail:  # tail output, message only
     class: winevt_tailer.utils.RotatingFileHandler
     formatter: msg_only
-    filename: "''' + DEFAULT_LOG_DIR + '''/windows-{0}.log"    
+    filename: "''' + DEFAULT_LOG_DIR + '''/windows_{0}.log"    
     level: INFO
     formatter: msg_only
     maxBytes: 10000000 
     backupCount: 1
     encoding: utf8
-  file.err:  # tailing output
+  file_svc:  # Service log
     class: winevt_tailer.utils.RotatingFileHandler
     formatter: msg_only
-    filename: "''' + DEFAULT_LOG_DIR + '''/windows-{0}.err.log"    
+    filename: "''' + DEFAULT_LOG_DIR + '''/''' + TAILER_TYPE + '''_{0}.log"    
     level: INFO
     formatter: simple
     maxBytes: 10000000 
     backupCount: 1
     encoding: utf8
 loggers:
+  tail_out: 
+      level: INFO
+      handlers: [file_tail]
+root: # all log
+  level: INFO
+  handlers: [file_svc]
+'''
+
+DEFAULT_LOGGING_CONSOLE = '''\
+version: 1
+disable_existing_loggers: true
+formatters:
+  simple:
+    format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+  msg_only:
+    format: '%(message)s'
+handlers:
+  stdout: # tail output
+    class: logging.StreamHandler
+    level: INFO
+    formatter: msg_only
+    stream: ext://sys.stdout
+  stderr: # log
+    class: logging.StreamHandler
+    level: INFO
+    formatter: msg_only
+    stream: ext://sys.stderr
+loggers:
   tail_out:
       level: INFO
-      handlers: [stdout, file]
-root:   # general log
+      handlers: [stdout]
+root: # all log
   level: INFO
-  handlers: [file.err]
+  handlers: [stderr]
 '''
 
 XSLT_XML_TO_JSON = '''\
