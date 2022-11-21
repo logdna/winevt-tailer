@@ -2,6 +2,7 @@ import os
 import sys
 import logging
 import time
+import contextlib
 import win32evtlog, win32event, win32con
 import winevt_tailer.opts as opts
 import winevt_tailer.utils as utils
@@ -27,9 +28,9 @@ class Tailer:
 
     def __init__(self, name, config: opts.TailerConfig):
         self.name = name
-        self.is_exit = False
+        self.is_stop = False
         self.config = config
-        self.log = logging.getLogger(name)
+        self.log = logging.getLogger("tailer")
         self.tail_out = logging.getLogger('tail_out')
         self.tail_out.propagate = False
         # max number of channels per tailer is limited
@@ -42,11 +43,9 @@ class Tailer:
         self.signals = [win32event.CreateEvent(None, 0, 0, None) for _ in config.channels]
         if self.config.lookback < 0:
             self.config.lookback = sys.maxsize
+        self.bookmarks_filename = f'{self.config.bookmarks_dir}/{consts.TAILER_TYPE}_{self.name}.bookmarks'
         if self.config.persistent:
             os.makedirs(config.bookmarks_dir, exist_ok=True)
-            self.bookmarks_filename = os.path.join(config.bookmarks_dir, f'{consts.TAILER_TYPE}_{name}.bookmarks')
-        else:
-            self.bookmarks_filename = None
         if config.persistent and os.path.isfile(self.bookmarks_filename):
             self.bookmarks = utils.load_bookmarks(self.bookmarks_filename, config.channels)
         else:
@@ -54,17 +53,26 @@ class Tailer:
         self.bookmarks_commit_ts = 0  # monotonic
         self.bookmarks_update_ts = 0  # monotonic
 
+    def reset_state(self):
+        """
+        Reset persistent state - remove bookmarks
+        """
+        with contextlib.suppress(FileNotFoundError):
+            os.remove(self.bookmarks_filename)
+        self.log.info(f'Removed file: "{self.bookmarks_filename}"')
+
     def stop(self) -> bool:
-        if self.is_exit:
+        if self.is_stop:
             return False
-        self.is_exit = True
+        self.is_stop = True
         return True
 
     def run(self) -> int:
         """
-        This is main loop. Any error or exception is fatal. Exits on self.is_exit set in main by
+        This is main loop. Any error or exception is fatal. Exits on self.is_stop set in main by
         exit signal handler.
         """
+        self.log.info("start")
         # output startup hello
         if self.config.startup_hello:
             self.tail_out.info(consts.STARTUP_HELLO % self.name)
@@ -93,7 +101,8 @@ class Tailer:
             # fetch & handle old events
             if fetch_old_events:
                 while True:
-                    if self.is_exit:
+                    if self.is_stop:
+                        self.log.info("stop")
                         return 0
                     events = win32evtlog.EvtNext(qrys[ch_idx], Count=50, Timeout=100)
                     if len(events) == 0:
@@ -127,13 +136,15 @@ class Tailer:
                 subs.append(sub)
         del qrys
         # exit after old events printed?
-        if self.config.exit_after_lookback or self.is_exit:
+        if self.config.exit_after_lookback or self.is_stop:
+            self.log.info("stop")
             sys.exit(0)
         # fetch & handle new events before waiting
         for ch_idx in range(0, len(self.config.channels)):
             last_event_h = None
             while True:
-                if self.is_exit:
+                if self.is_stop:
+                    self.log.info("stop")
                     return 0
                 events = win32evtlog.EvtNext(subs[ch_idx], Count=50, Timeout=100)
                 if len(events) == 0:
@@ -147,6 +158,7 @@ class Tailer:
                 self.bookmarks_update_ts = time.monotonic()
         del sub
         # main event loop
+        self.log.info("event loop running")
         while True:
             # commit bookmarks
             if self.config.persistent and self.bookmarks_update_ts > self.bookmarks_commit_ts and \
@@ -155,7 +167,8 @@ class Tailer:
                 self.bookmarks_commit_ts = time.monotonic()
             # wait for channels to be signaled
             while True:
-                if self.is_exit:
+                if self.is_stop:
+                    self.log.info("stop")
                     return 0
                 signaled = win32event.WaitForMultipleObjectsEx(self.signals, False, 500, True)
                 if win32con.WAIT_OBJECT_0 <= signaled < win32con.WAIT_OBJECT_0 + win32event.MAXIMUM_WAIT_OBJECTS:
@@ -165,7 +178,7 @@ class Tailer:
             last_event_h = None
             while True:
                 events = win32evtlog.EvtNext(subs[ch_idx], Count=50, Timeout=100)
-                if len(events) == 0 or self.is_exit:
+                if len(events) == 0 or self.is_stop:
                     break
                 for event_h in events:
                     if self.handle_event(ch_idx, event_h):  # False means event was ignored

@@ -45,6 +45,7 @@ def parse_cmd_args(argv=None):
     group.add_argument('-e', '--print_config', action='store_true', help='Print effective config end exit.')
     group.add_argument('-i', '--install_service', action='store_true', help='Install windows service.')
     group.add_argument('-u', '--uninstall_service', action='store_true', help='Uninstall windows service.')
+    group.add_argument('-r', '--reset', action='store_true', help='Reset persistent state - delete event bookmarks.')
     parser.add_argument('-f', '--follow', action='store_true', help='Follow and output new events as they arrive. '
                                                                     'True in service mode.')
     parser.add_argument('-p', '--persistent', action='store_true',

@@ -55,6 +55,7 @@ def main() -> int:
     # configure logging
     logging.config.dictConfig(logging_config_dict)
     log = logging.getLogger('main')
+    log.info('init')
 
     # create tailer config obj
     tailer_config = opts.parse_tailer_config(tailer_config_dict)
@@ -62,7 +63,11 @@ def main() -> int:
     # create tailer instance
     tailer = Tailer(tailer_name, tailer_config)
 
-    log.info('start')
+    # reset persistent state - remove bookmarks
+    if args.reset:
+        tailer.reset_state()
+        log.info('Reset completed')
+        return 0
 
     if is_service:
         # service mode
@@ -82,7 +87,7 @@ def main() -> int:
         # run tailer main loop
         exit_code = tailer.run()
 
-    log.info(f'exitcode {exit_code}')
+    log.info(f'exit ({exit_code})')
     return exit_code
 
 
@@ -91,33 +96,35 @@ def exit_signal_handler(signum, tailer):
 
 
 class TailerService(win32serviceutil.ServiceFramework):
+    # these fields must be defined in main() before object instantiation
     _svc_name_ = None
     _svc_display_name_ = None
-    _svc_impl = None
+    _svc_impl: Tailer = None
 
     def __init__(self, args):
         super().__init__(args)
-        self.service_impl = None
+        self.log = logging.getLogger("service")
+        # handle "Start Parameters" passed to Service in SCM dialog
+        if "-r" in args:
+            self._svc_impl.reset_state()
+            self.log.info('Reset completed')
 
     def SvcStop(self):
         # trigger stop
         self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)
-        self.service_impl.stop()
+        self._svc_impl.stop()
 
     def SvcDoRun(self):
         # start the service, does not return until stopped
         # base class will automatically tell SCM the service has stopped when this returns
-        self.service_impl = TailerService._svc_impl
-        # run the service
-        log = logging.getLogger("service")
         try:
             servicemanager.LogMsg(servicemanager.EVENTLOG_INFORMATION_TYPE, servicemanager.PYS_SERVICE_STARTED,
                                   (self._svc_name_, ''))
-            log.info("started")
-            self.service_impl.run()
-            log.info("stopped")
+            self.log.info("started")
+            self._svc_impl.run()
+            self.log.info("stopped")
         except Exception as ex:
-            log.error(ex)
+            self.log.error(ex)
 
 
 def install_tailer_service(tailer_service_name) -> int:

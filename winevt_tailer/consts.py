@@ -83,7 +83,7 @@ loggers:
       level: INFO
       handlers: [stdout]
 root: # all log
-  level: INFO
+  level: WARNING
   handlers: [stderr]
 '''
 
