@@ -34,7 +34,7 @@ def parse_cmd_args(argv=None):
     Returns:
         dict: parsed arguments as argparse dict
     """
-    parser = argparse.ArgumentParser(description='Tails Windows Event logs to stdout in JSON format', add_help=False)
+    parser = argparse.ArgumentParser(description='Tail Windows Event logs using single-line JSON format', add_help=False)
     group = parser.add_mutually_exclusive_group()
     group.add_argument('-v', '--version', action='version',
                        version=f'{consts.TAILER_TYPE} {__version__}', help="Show program version info and exit.")
@@ -42,7 +42,7 @@ def parse_cmd_args(argv=None):
                        help='Show this help message and exit.')
     group.add_argument('-l', '--list', action='store_true', help='List event channel names accessible to current '
                                                                  'user. Some channels may need Admin rights.')
-    group.add_argument('-e', '--print_config', action='store_true', help='Print effective config end exit.')
+    group.add_argument('-e', '--print_config', action='store_true', help='Print effective config and exit.')
     group.add_argument('-i', '--install_service', action='store_true', help='Install windows service.')
     group.add_argument('-u', '--uninstall_service', action='store_true', help='Uninstall windows service.')
     group.add_argument('-r', '--reset', action='store_true', help='Reset persistent state - delete event bookmarks.')
@@ -59,7 +59,8 @@ def parse_cmd_args(argv=None):
                         type=lambda val: str_regex_type(val, regex_str=r'^[^\s]+$'), default=consts.DEFAULT_TAILER_NAME)
     parser.add_argument('-b', '--lookback', type=int, help='Defines how many old events to tail. -1 means all '
                                                            f'available events. default is {consts.DEFAULT_LOOKBACK}. '
-                                                           'Applicable only to channels without persisted state')
+                                                           'Applied in non-persistent mode or when event channel '
+                                                           'persistent state was not stored.')
     parser.add_argument('--tailer_config', help='Named tailer config section as YAML string', type=yaml_regex_type)
     parser.add_argument('--logging_config', help='Logging config section as YAML string', type=yaml_regex_type)
     parser.add_argument('-s', '--startup_hello', action='store_true',
