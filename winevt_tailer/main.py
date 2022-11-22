@@ -76,7 +76,7 @@ def main() -> int:
         sys.stdout = sys.stderr = open('nul', 'w')
         TailerService._svc_name_ = tailer_service_name
         TailerService._svc_display_name_ = tailer_service_name
-        TailerService._svc_impl = tailer
+        TailerService._tailer_ = tailer
         servicemanager.Initialize()
         servicemanager.PrepareToHostSingle(TailerService)
         servicemanager.StartServiceCtrlDispatcher()  # returns when the service has stopped
@@ -99,20 +99,20 @@ class TailerService(win32serviceutil.ServiceFramework):
     # these fields must be defined in main() before object instantiation
     _svc_name_ = None
     _svc_display_name_ = None
-    _svc_impl: Tailer = None
+    _tailer_: Tailer = None
 
     def __init__(self, args):
         super().__init__(args)
         self.log = logging.getLogger("service")
         # handle "Start Parameters" passed to Service in SCM dialog
         if "-r" in args:
-            self._svc_impl.reset_state()
+            self._tailer_.reset_state()
             self.log.info('Reset completed')
 
     def SvcStop(self):
         # trigger stop
         self.ReportServiceStatus(win32service.SERVICE_STOP_PENDING)
-        self._svc_impl.stop()
+        self._tailer_.stop()
 
     def SvcDoRun(self):
         # start the service, does not return until stopped
@@ -121,7 +121,7 @@ class TailerService(win32serviceutil.ServiceFramework):
             servicemanager.LogMsg(servicemanager.EVENTLOG_INFORMATION_TYPE, servicemanager.PYS_SERVICE_STARTED,
                                   (self._svc_name_, ''))
             self.log.info("started")
-            self._svc_impl.run()
+            self._tailer_.run()
             self.log.info("stopped")
         except Exception as ex:
             self.log.error(ex)
@@ -143,17 +143,17 @@ def install_tailer_service(tailer_service_name) -> int:
     except win32service.error as ex:
         pass
     try:
-        # remove -i, -u = install & uninstall
-        #  append -f, -p = follow & persistent
-        svc_args = " ".join(
-            [s for s in sys.argv[1:] if s not in ['-i', '--install_service', '-u', '-uninstall_service']]) + '-f -p'
+        # remove -i/--install_service & -u/--uninstall_service
+        # prepend "-f -p" to follow with enabled persistent state
+        args = '-f -p ' + " ".join(
+            [arg for arg in sys.argv[1:] if arg not in ['-i', '--install_service', '-u', '-uninstall_service']])
         win32serviceutil.InstallService(
             None,
             tailer_service_name,
             tailer_service_name,
             description=tailer_service_name,
             startType=win32service.SERVICE_AUTO_START,
-            exeArgs=svc_args,
+            exeArgs=args,
         )
         print(f'Service installed: {tailer_service_name}')
     except win32service.error as ex:
