@@ -123,14 +123,15 @@ def get_config(args: object, is_service: bool) -> (dict, dict):
     Returns:
         (dict,dict): returns tailer_config_dict, logging_config_dict
     """
-    tailer_config_dict = yaml.safe_load(consts.DEFAULT_TAILER_CONFIG)
     if is_service:
-        # service log goes to file and tail goes to another file in c:/ProgramData/logs
-        logging_config_dict = yaml.safe_load(consts.DEFAULT_LOGGING_SERVICE.format(args.name))
+        tailer_config_dict = yaml.safe_load(consts.DEFAULT_CONFIG_FOR_SERVICE.format(args.name))
+        # service log and tail output go to different files in c:/ProgramData/logs
+        logging_config_dict = yaml.safe_load(consts.DEFAULT_LOGGING_FOR_SERVICE.format(args.name))
     else:
-        # cli mode outputs log to stderr, while stdout used for tail output only
-        logging_config_dict = yaml.safe_load(consts.DEFAULT_LOGGING_CONSOLE.format(args.name))
-    # load from file
+        tailer_config_dict = yaml.safe_load(consts.DEFAULT_CONFIG_FOR_CONSOLE.format(args.name))
+        # in cli mode log goes to stderr, while stdout is used for tail output only
+        logging_config_dict = yaml.safe_load(consts.DEFAULT_LOGGING_FOR_CONSOLE.format(args.name))
+    # from file
     if args.config_file:
         with args.config_file as f:
             config_file_dict = yaml.safe_load(f)
@@ -139,19 +140,18 @@ def get_config(args: object, is_service: bool) -> (dict, dict):
                 raise errors.ConfigError(f'Missing "{consts.TAILER_TYPE}" section in config file: {f.name}')
             tailer_config_dict.update(config_tailers_dict.get(args.name, {}))
             logging_config_dict.update(config_file_dict.get('logging', {}))
-    # from env vars and args
-    # tailer config
+    # tailer config from env vars and args
     tailer_env = os.getenv(f'TAILER_CONFIG')
     tailer_env = os.getenv(f'TAILER_CONFIG_{args.name.upper()}', tailer_env)
     if tailer_env:
         tailer_config_dict.update(yaml.safe_load(tailer_env))
-    if args.tailer_config:  # tailer config as YAML string
+    if args.tailer_config:  # tailer config as YAML string CLI arg
         tailer_config_dict.update(yaml.safe_load(args.tailer_config))
-    # logging config
+    # logging config from env vars and args
     logging_env = os.getenv(f'TAILER_LOGGING')
     logging_env = os.getenv(f'TAILER_LOGGING_{args.name.upper()}', logging_env)
     if logging_env:
         logging_config_dict.update(yaml.safe_load(logging_env))
-    if args.logging_config:  # logging config as YAML string
+    if args.logging_config:  # logging config as YAML string CLI arg
         logging_config_dict.update(yaml.safe_load(args.logging_config))
     return tailer_config_dict, logging_config_dict

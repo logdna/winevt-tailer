@@ -10,7 +10,7 @@ STARTUP_HELLO = '{"Tailer":{"name":"%s","type":'+ TAILER_TYPE + ',"version":1,"p
 DEFAULT_LOG_DIR = 'c:/ProgramData/logs'
 DEFAULT_DATA_DIR = 'c:/ProgramData/' + TAILER_TYPE
 
-DEFAULT_TAILER_CONFIG = '''\
+DEFAULT_CONFIG_FOR_SERVICE = '''\
 channels:
    - name: Application
      query: "*"
@@ -23,7 +23,20 @@ transforms:
 bookmarks_dir: "''' + DEFAULT_DATA_DIR + '''"    
 '''
 
-DEFAULT_LOGGING_SERVICE = '''\
+DEFAULT_CONFIG_FOR_CONSOLE = '''\
+channels:
+   - name: Application
+     query: "*"
+   - name: System
+     query: "*"
+transforms:
+    - winevt_tailer.transforms.xml_remove_binary
+    - winevt_tailer.transforms.xml_render_message
+    - winevt_tailer.transforms.xml_to_json
+bookmarks_dir: "."    
+'''
+
+DEFAULT_LOGGING_FOR_SERVICE = '''\
 version: 1
 disable_existing_loggers: true
 formatters:
@@ -59,7 +72,7 @@ root: # all log
   handlers: [file_svc]
 '''
 
-DEFAULT_LOGGING_CONSOLE = '''\
+DEFAULT_LOGGING_FOR_CONSOLE = '''\
 version: 1
 disable_existing_loggers: true
 formatters:

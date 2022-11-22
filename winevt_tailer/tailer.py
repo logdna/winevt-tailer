@@ -135,6 +135,10 @@ class Tailer:
                 )
                 subs.append(sub)
         del qrys
+        # commit bookmarks if persistent mode is enabled
+        if self.config.persistent:
+            utils.store_bookmarks(self.bookmarks_filename, self.bookmarks, self.config.channels)
+            self.bookmarks_commit_ts = time.monotonic()
         # exit after old events printed?
         if self.config.exit_after_lookback or self.is_stop:
             self.log.info("stop")
