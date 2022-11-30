@@ -207,6 +207,30 @@ Here is example of simple event de-duplication transform that uses short event b
 ```
 
 
+
+### Event Transforms
+
+Tailer has event processing pipeline:
+
+```
+  Event Channel -> Event XML Object -> Transforms -> XML to JSON -> Output
+```
+
+Default transfoms in default config:
+
+```
+winevt-tailer:
+    tail1:
+      transforms:
+      - winevt_tailer.transforms.xml_remove_binary
+      - winevt_tailer.transforms.xml_render_message
+      - winevt_tailer.transforms.xml_to_json
+```
+
+It is possible to add user defined event transforms.
+
+
+
 ## Integration with Mezmo Agent
 
 Tailer can be used with [Mezmo Agent](https://github.com/logdna/logdna-agent-v2) to stream log files to [Mezmo.com](https://www.mezmo.com). Just install Tailer as service and then install [Mezmo Agent for Windows](https://community.chocolatey.org/packages/mezmo-agent). More tight integration with Mezmo Agent using Agent Tailer API (IPC) will be available in next Agent release.
