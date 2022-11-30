@@ -50,8 +50,8 @@ Functionally this service will be equivalent to CLI mode:  ```winevt-tailer <CLI
 In service mode logs go to ```c:/ProgramData/logs```:
 
 ```
-    windows_tail1.log           -- Windows events in one-line-JSON format, ready to be streamed by Mezmo Agent
-    winevt-tailer_tail1.log     -- service instance log
+windows_tail1.log           -- Windows events in one-line-JSON format, ready to be streamed by Mezmo Agent
+winevt-tailer_tail1.log     -- service instance log
 ```
 
 To uninstall the service:
@@ -59,6 +59,8 @@ To uninstall the service:
 ```winevt-tailer -u```
 
 ## Advanced Usage
+
+### CLI Help
 
 ```
 > winevt-tailer.exe -h
@@ -91,7 +93,49 @@ options:
   -s, --startup_hello   Output Startup Hello line. Part of Mezmo Agent Tailer API. Default: off
  ```
 
+### Configuration File
+
+Tailer accepts configuration file name in "-c" option. The file format is YAML. Use "-e" option to dump effective config to a file and then use it as configuration file:
+
+```
+winevt-tailer -f -b 10 -e > config.yaml
+```
+
+Then you can start Tailer with generated config file:
+
+```
+winevt-tailer -c config.yaml
+```
+
+which will be equvalent to running "winevt-tailer -f -b 10".
+
+Configuration file structure:
+
+```
+winevt-tailer:
+    logging:
+      <standard python logging config>
+    tail1:
+      <named tailer config>
+```
+
+Named tailer config section corresponds to tailer name specfied in "-n" option, default is "tail1". Configration file can have multiple named tailer configs. 
+When tailer service starts it prints effective config to log file. Default log file: ```c:\ProgramData\logs\winevt-tailer_tail1.log```.
+In service mode persistant state "-p" and follow mode "-f" are enabled by default.
+
+### Enviroinment vars
+Named tailer config and logging config sections can be passed in enviroment vars (as minifier one-line-yaml string):
+
+```
+  TAILER_CONFIG                     - content of named tailer config section
+  TAILER_CONFIG_<tailer_name>       - overrides TAILER_CONFIG
+
+  TAILER_LOGGING                    - content of logging section
+  TAILER_LOGGING_<tailer_name>      - overrides TAILER_LOGGING
+```
+
+Enviroment vars override config file and CLI options. CLI options override config file.
 
 ## Integration with Mezmo Agent
 
-Tailer can be used with [Mezmo Agent](https://github.com/logdna/logdna-agent-v2) to stream log files to [Mezmo.com](https://www.mezmo.com).
+Tailer can be used with [Mezmo Agent](https://github.com/logdna/logdna-agent-v2) to stream log files to [Mezmo.com](https://www.mezmo.com). Just install Tailer as service and then install [Mezmo Agent for Windows](https://community.chocolatey.org/packages/mezmo-agent).
