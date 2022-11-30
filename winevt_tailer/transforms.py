@@ -1,13 +1,13 @@
 from lxml import etree
-import winevt_tailer.consts as const
 import win32evtlog
+import winevt_tailer.consts as const
 
 xml_to_json_xform = etree.XSLT(etree.fromstring(const.XSLT_XML_TO_JSON))
 
 
 def xml_to_json(context: dict, event_h, event_obj: object) -> object:
     tree_obj = xml_to_json_xform(event_obj)
-    event_out = str(tree_obj).replace("\n", "\\n")  # TODO in XSLT
+    event_out = str(tree_obj).replace("\n", "\\n")  # TODO: do it using XSLT
     return event_out
 
 

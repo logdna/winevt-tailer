@@ -2,23 +2,25 @@
 Windows Event Log Tailer allows to live tail Windows events to standard output when running as console application or to log file when running as a service. It is written in Python, and is MIT licensed open source.
 
 ## Features
+
 - Live tail - following new events
 - Lookback
 - XPath queries
-- Keeping track of tailed events - presistent state
+- Event Transforms - allows to apply user defined transformations to events
+- Keeping track of tailed events - persistent state
 - Windows service mode with self install / uninstall
-- Allows to add custom event transforms
 - Custom tail output using standard logging framework
-- Interation with Mezmo Agent
+- Integration with Mezmo Agent
 
 ## Intallation
-Tailer is distributed as standalone executable.
+
+Tailer is distributed as signed standalone executable available for download [here](https://github.com/logdna/winevt-tailer/releases).
 
 ## Getting Started
 
 ### Console mode (CLI)
 
-To tail last 100 events from Application and last 100 events from System event logs (channels):
+To tail last 100 events from Application and last 100 events from System event logs:
 
 ```
 winevt-tailer
@@ -34,18 +36,20 @@ winevt-tailer -f -b 10
 
 
 ### Service mode
+
 To install Tailer as Windows service:
 
 ```winevt-tailer -i```
 
 or
 
-```winevt-tailer -i <CLI args>```
+```winevt-tailer -i <CLI options>```
 
-- default service name: ```winevt-tailer_<tailer_name>```. default tailer name: ```tail1```, controlled by "-n" CLI arg
+Service defaults:
+- service name: ```winevt-tailer_<tailer_name>```
+- tailer name: ```tail1```, see "-n" option
 
-
-Functionally this service will be equivalent to CLI mode:  ```winevt-tailer <CLI args>```. To change CLI args - just call the same "-i" command again with different set of CLI args.
+Functionally this service will be equivalent to CLI mode: ```winevt-tailer <CLI options>```. To change service CLI options - just call the same "-i" command again with new set of options.
 
 In service mode logs go to ```c:/ProgramData/logs```:
 
@@ -58,9 +62,10 @@ To uninstall the service:
 
 ```winevt-tailer -u```
 
+
 ## Advanced Usage
 
-### CLI Help
+### CLI Options
 
 ```
 > winevt-tailer.exe -h
@@ -85,7 +90,7 @@ options:
                         Config file path, file format: YAML
   -n NAME, --name NAME  Tailer name. Also defines where to look for config: winevt-tailer/<name> in YAML file; TAILER_CONFIG_<name> and TAILER_LOGGING_<name> in env vars (as YAML string)
   -b LOOKBACK, --lookback LOOKBACK
-                        Defines how many old events to tail. -1 means all available events. default is 100. Applicable only to channels without persisted state
+                        Defines how many old events to tail. -1 means all available events. Default is 100. Applicable only to channels without persisted state
   --tailer_config TAILER_CONFIG
                         Named tailer config section as YAML string
   --logging_config LOGGING_CONFIG
@@ -107,7 +112,7 @@ Then you can start Tailer with generated config file:
 winevt-tailer -c config.yaml
 ```
 
-which will be equvalent to running "winevt-tailer -f -b 10".
+which will be equivalent to running "winevt-tailer -f -b 10".
 
 Configuration file structure:
 
@@ -119,12 +124,49 @@ winevt-tailer:
       <named tailer config>
 ```
 
-Named tailer config section corresponds to tailer name specfied in "-n" option, default is "tail1". Configration file can have multiple named tailer configs. 
-When tailer service starts it prints effective config to log file. Default log file: ```c:\ProgramData\logs\winevt-tailer_tail1.log```.
-In service mode persistant state "-p" and follow mode "-f" are enabled by default.
+Named tailer config section corresponds to tailer name specified in "-n" option, default is "tail1". Configuration file can have multiple named tailer configs. 
+When tailer service starts it prints effective config to log file. Default service log file: ```c:\ProgramData\logs\winevt-tailer_tail1.log```.
+In service mode persistent state "-p" and follow mode "-f" are enabled by default.
 
-### Enviroinment vars
-Named tailer config and logging config sections can be passed in enviroment vars (as minifier one-line-yaml string):
+### Event Channels and XPath queries
+
+Tailer supports up to 64 event channels with optional individual custom filters using the same XPath syntax used in Windows Event Viewer.
+Default event channels: ```Application, System```. Channels are defined in named tailer config section - output from "winevt-tailer -e":
+
+```
+winevt-tailer:
+    tail1:
+        bookmarks_dir: .
+        channels:
+        -   name: Application           <<<< channel name
+            query: '*'                  <<<< XPath query
+        -   name: System
+            query: '*'
+```
+
+The same channel name can be used multiple times.
+
+Windows event Viewer can be used to create channel filter:
+
+![image](https://user-images.githubusercontent.com/7530150/204931587-6e2e045d-e7fe-402f-97b3-1fc44e26da0b.png)
+
+then switch to XML view of the filter and extract XPath query (highlighted):
+
+![image](https://user-images.githubusercontent.com/7530150/204931845-68af1728-38fa-4549-9d65-30582e533681.png)
+
+Use extracted XPath string as query value:
+```
+winevt-tailer:
+    tail1:
+        bookmarks_dir: .
+        channels:
+        -   name: Application
+            query: '*[System[(EventID=4098)]]'
+```
+
+
+### Environment vars
+Named tailer config and logging config sections can be passed in environment vars (as minified one-line-yaml string):
 
 ```
   TAILER_CONFIG                     - content of named tailer config section
@@ -134,8 +176,37 @@ Named tailer config and logging config sections can be passed in enviroment vars
   TAILER_LOGGING_<tailer_name>      - overrides TAILER_LOGGING
 ```
 
-Enviroment vars override config file and CLI options. CLI options override config file.
+Environment vars override config file and CLI options. CLI options override config file.
+
+
+### Event Transforms
+
+Tailer event processing pipeline:
+
+```
+  Event Channel -> Event XML Object -> Transforms -> XML Object to JSON -> Output
+```
+
+Default transforms - as defined in default config:
+
+```
+winevt-tailer:
+    tail1:
+      transforms:
+      - winevt_tailer.transforms.xml_remove_binary
+      - winevt_tailer.transforms.xml_render_message
+      - winevt_tailer.transforms.xml_to_json
+```
+
+Transform name is full Python function object name. Tailer supports adding custom transforms defined in external py file.
+
+Here is example of simple event de-duplication transform that uses short event backlog stored in context preserved over transform calls:
+```
+
+
+```
+
 
 ## Integration with Mezmo Agent
 
-Tailer can be used with [Mezmo Agent](https://github.com/logdna/logdna-agent-v2) to stream log files to [Mezmo.com](https://www.mezmo.com). Just install Tailer as service and then install [Mezmo Agent for Windows](https://community.chocolatey.org/packages/mezmo-agent).
+Tailer can be used with [Mezmo Agent](https://github.com/logdna/logdna-agent-v2) to stream log files to [Mezmo.com](https://www.mezmo.com). Just install Tailer as service and then install [Mezmo Agent for Windows](https://community.chocolatey.org/packages/mezmo-agent). More tight integration with Mezmo Agent using Agent Tailer API (IPC) will be available in next Agent release.
