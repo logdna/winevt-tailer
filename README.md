@@ -10,9 +10,10 @@ Windows Event Log Tailer allows to live tail Windows events to standard output w
 - Keeping track of tailed events - persistent state
 - Windows service mode with self install / uninstall
 - Custom tail output using standard logging framework
+- Using fast native libxml2 (lxml) for XML parsing, XSLT transforms (JSON assembly)
 - Integration with Mezmo Agent
 
-## Intallation
+## Installation
 
 Tailer is distributed as signed standalone executable available for download [here](https://github.com/logdna/winevt-tailer/releases).
 
@@ -49,14 +50,16 @@ Service defaults:
 - service name: ```winevt-tailer_<tailer_name>```
 - tailer name: ```tail1```, see "-n" option
 
-Functionally this service will be equivalent to CLI mode: ```winevt-tailer <CLI options>```. To change service CLI options - just call the same "-i" command again with new set of options.
+Functionally this service will be equivalent to CLI mode: ```winevt-tailer <CLI options>```. To change service CLI options - just run the same "-i" command again with new set of options.
 
-In service mode logs go to ```c:/ProgramData/logs```:
+Tailer logs by default are stored in ```c:/ProgramData/logs```:
 
 ```
 windows_tail1.log           -- Windows events in one-line-JSON format, ready to be streamed by Mezmo Agent
 winevt-tailer_tail1.log     -- service instance log
 ```
+
+The location can be changed in config file in winevt-tailer.logging section.
 
 To uninstall the service:
 
@@ -129,26 +132,26 @@ winevt-tailer:
 ```
 
 Named tailer config section corresponds to tailer name specified in "-n" option, default is "tail1". Configuration file can have multiple named tailer configs. 
-When tailer service starts it prints effective config to log file. Default service log file: ```c:\ProgramData\logs\winevt-tailer_tail1.log```.
+When tailer service starts it prints effective config to service log file. Default service log file: ```c:\ProgramData\logs\winevt-tailer_tail1.log```.
 In service mode persistent state "-p" and follow mode "-f" are enabled by default.
 
 ### Event Channels and XPath queries
 
 Tailer supports up to 64 event channels with optional individual custom filters using the same XPath syntax used in Windows Event Viewer.
-Default event channels: ```Application, System```. Channels are defined in named tailer config section - output from "winevt-tailer -e":
+Default event channels: ```Application, System```. Channels are defined in named tailer config section. Output from "winevt-tailer -e":
 
 ```
 winevt-tailer:
     tail1:
         bookmarks_dir: .
         channels:
-        -   name: Application           <<<< channel name
+        -   name: Application           <<<< Channel name
             query: '*'                  <<<< XPath query
         -   name: System
             query: '*'
 ```
 
-The same channel name can be used multiple times.
+The same channel name can be used multiple times with different query filters. This may create duplicate events if channels queries produce overlapped content.
 
 Windows event Viewer can be used to create channel filter:
 
@@ -180,7 +183,7 @@ Named tailer config and logging config sections can be passed in environment var
   TAILER_LOGGING_<tailer_name>      - overrides TAILER_LOGGING
 ```
 
-Environment vars override config file and CLI options. CLI options override config file.
+Environment vars override config file. CLI options override environment vars and config file.
 
 
 ### Event Transforms
@@ -202,25 +205,46 @@ winevt-tailer:
       - winevt_tailer.transforms.xml_to_json
 ```
 
-Transform name is full Python function object name. Tailer supports adding custom transforms defined in external py file.
+Transform name is Python object importable full dotted path. Transforms applied in the list order. Tailer supports adding custom transforms defined in external py module file.
 
-Here is example of simple event de-duplication transform that uses short event backlog stored in context preserved over transform calls:
-```
-
+Example of simple event *deduplication transform* (reduction filter) that skips subsequent events that have the same text in Message field:
 
 ```
+from lxml import etree
+import win32evtlog
 
 
-
-### Event Transforms
-
-Tailer has event processing pipeline:
-
+def dedup_by_message(context: dict, event_h, event_obj: object) -> object:
+    """
+    This transform implements simple deduplication based on rendered Message field by transforms.xml_render_message
+    xform. It uses context object to store last event.
+    Args:
+        context: a dictionary that can be used to store data that preserved between calls
+        event_h: original event handle from win32evtlog
+        event_obj:  lxml.etree - parsed XMl object
+    Returns:
+        None - to skip event, otherwise unmodified original event obj
+    """
+    my_context = context.get("dedup_by_message")
+    if my_context is None:
+        context["dedup_by_message"] = {}
+        return event_obj  # No skip, 1st event
+    try:
+        new_msg = etree.SubElement(event_obj, 'Message')
+        last_event = my_context.get("last_event")
+        if last_event is not None:
+            last_msg = etree.SubElement(last_event, 'Message')
+            if last_msg.text == new_msg.text:
+                return None  # Skip, same message
+    except Exception:
+        # pywintypes.error: (2, 'EvtOpenPublisherMetadata', 'The system cannot find the file specified.')
+        pass
+    finally:
+        my_context["last_event"] = event_obj
+    return event_obj  # No skip
 ```
-  Event Channel -> Event XML Object -> Transforms -> XML to JSON -> Output
-```
 
-Default transfoms in default config:
+Save it to ```my_transforms.py```. Create default config file and add new transform function dot path ```my_transforms.dedup_by_message``` after ```xml_render_message```:
 
 ```
 winevt-tailer:
@@ -228,11 +252,19 @@ winevt-tailer:
       transforms:
       - winevt_tailer.transforms.xml_remove_binary
       - winevt_tailer.transforms.xml_render_message
+      - my_transforms.dedup_by_message                   <<<<<<<<< the deduping transform
       - winevt_tailer.transforms.xml_to_json
 ```
 
-It is possible to add user defined event transforms.
+Then run Tailer:
 
+```
+winevt-tailer -f -c config.yaml
+```
+
+For other examples see built-in transforms in: [winevt_tailer/transforms.py](winevt_tailer/transforms.py)
+
+In CLI mode Tailer is looking for transforms in current working directory, in service mode - in the location of winevt-tailer.exe. Transforms path can also be specified using "-t" option. 
 
 
 ## Integration with Mezmo Agent
