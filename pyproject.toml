@@ -17,7 +17,7 @@ commit_subject = "release: Version {version} [skip ci]"
 commit_author = "LogDNA Bot <bot@logdna.com>"
 
 [tool.poetry.dependencies]
-python = "3.10"
+python = ">=3.10,<3.12"
 pywin32 = "^304"
 lxml = "^4.9.1"
 PyYAML = "^6.0"

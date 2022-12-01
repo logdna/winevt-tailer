@@ -267,6 +267,33 @@ For other examples see built-in transforms in: [winevt_tailer/transforms.py](win
 In CLI mode Tailer is looking for transforms in current working directory, in service mode - in the location of winevt-tailer.exe. Transforms path can also be specified using "-t" option. 
 
 
+## How to Build
+
+Recommended development setup:
+- install [miniconda](https://repo.anaconda.com/miniconda/Miniconda3-py38_4.12.0-Windows-x86_64.exe)
+- start conda shell
+- create env
+
+```
+conda create -n work -c conda-forge python=3.10 git make
+conda activate work
+pip install poetry
+```
+
+- build exe
+
+```
+make build
+```
+
+build will create ```winevt-tailer.exe``` in folder ```build/dist```
+
+- test executable
+
+```
+build/dist/winevt-tailer.exe
+```
+
 ## Integration with Mezmo Agent
 
 Tailer can be used with [Mezmo Agent](https://github.com/logdna/logdna-agent-v2) to stream log files to [Mezmo.com](https://www.mezmo.com). Just install Tailer as service and then install [Mezmo Agent for Windows](https://community.chocolatey.org/packages/mezmo-agent). More tight integration with Mezmo Agent using Agent Tailer API (IPC) will be available in next Agent release.
