@@ -27,6 +27,15 @@ def yaml_regex_type(arg_value):
     return arg_value
 
 
+def transforms_path_type(arg_value):
+    # can be directory or file (zip)
+    if not os.path.exists(arg_value):
+        raise errors.ArgError(f"Transform path does exist: '{arg_value}'")
+    if not os.access(arg_value, os.R_OK):
+        raise errors.ArgError(f"Cannot access: '{arg_value}'")
+    return arg_value
+
+
 def parse_cmd_args(argv=None):
     """
     Args:
@@ -34,7 +43,8 @@ def parse_cmd_args(argv=None):
     Returns:
         dict: parsed arguments as argparse dict
     """
-    parser = argparse.ArgumentParser(description='Tail Windows Event logs using single-line JSON format', add_help=False)
+    parser = argparse.ArgumentParser(description='Tail Windows Event logs using single-line JSON format',
+                                     add_help=False)
     group = parser.add_mutually_exclusive_group()
     group.add_argument('-v', '--version', action='version',
                        version=f'{consts.TAILER_TYPE} {__version__}', help="Show program version info and exit.")
@@ -63,6 +73,7 @@ def parse_cmd_args(argv=None):
                                                            'persistent state was not stored.')
     parser.add_argument('--tailer_config', help='Named tailer config section as YAML string', type=yaml_regex_type)
     parser.add_argument('--logging_config', help='Logging config section as YAML string', type=yaml_regex_type)
+    parser.add_argument('-t', '--transforms_path', help='Path to custom transforms', type=transforms_path_type)
     parser.add_argument('-s', '--startup_hello', action='store_true',
                         help='Output Startup Hello line. Part of Mezmo Agent Tailer API. Default: off', default=None)
     #

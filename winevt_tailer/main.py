@@ -38,6 +38,18 @@ def main() -> int:
     if args.follow:
         tailer_config_dict['exit_after_lookback'] = False
 
+    # handle transforms path
+    if args.transforms_path is not None:
+        transforms_path = args.transforms_path
+    else:
+        if hasattr(sys, "frozen") and utils.is_running_as_service():
+            transforms_path = os.path.dirname(sys.executable)  # relative to exe
+        else:
+            transforms_path = os.getcwd()  # current working dir
+    transforms_path = os.path.normpath(transforms_path)
+    tailer_config_dict["transforms_path"] = transforms_path.replace('\\','\\\\')
+    sys.path.append(os.path.abspath(transforms_path))
+
     # print effective config to stdout and exit
     if args.print_config:
         yaml_str = utils.compose_effective_config(tailer_name, tailer_config_dict, logging_config_dict)

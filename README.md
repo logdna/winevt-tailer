@@ -70,7 +70,8 @@ To uninstall the service:
 ```
 > winevt-tailer.exe -h
 
-usage: winevt-tailer.exe [-v | -h | -l | -e | -i | -u | -r] [-f] [-p] [-c filepath] [-n NAME] [-b LOOKBACK] [--tailer_config TAILER_CONFIG] [--logging_config LOGGING_CONFIG] [-s]
+usage: winevt-tailer.exe [-v | -h | -l | -e | -i | -u | -r] [-f] [-p] [-c filepath] [-n NAME] [-b LOOKBACK] [--tailer_config TAILER_CONFIG] [--logging_config LOGGING_CONFIG]
+                         [-t TRANSFORMS_PATH] [-s]
 
 Tail Windows Event logs using single-line JSON format
 
@@ -78,7 +79,7 @@ options:
   -v, --version         Show program version info and exit.
   -h, --help            Show this help message and exit.
   -l, --list            List event channel names accessible to current user. Some channels may need Admin rights.
-  -e, --print_config    Print effective config end exit.
+  -e, --print_config    Print effective config and exit.
   -i, --install_service
                         Install windows service.
   -u, --uninstall_service
@@ -90,11 +91,14 @@ options:
                         Config file path, file format: YAML
   -n NAME, --name NAME  Tailer name. Also defines where to look for config: winevt-tailer/<name> in YAML file; TAILER_CONFIG_<name> and TAILER_LOGGING_<name> in env vars (as YAML string)
   -b LOOKBACK, --lookback LOOKBACK
-                        Defines how many old events to tail. -1 means all available events. Default is 100. Applicable only to channels without persisted state
+                        Defines how many old events to tail. -1 means all available events. default is 100. Applied in non-persistent mode or when event channel persistent state was not
+                        stored.
   --tailer_config TAILER_CONFIG
                         Named tailer config section as YAML string
   --logging_config LOGGING_CONFIG
                         Logging config section as YAML string
+  -t TRANSFORMS_PATH, --transforms_path TRANSFORMS_PATH
+                        Path to custom transforms
   -s, --startup_hello   Output Startup Hello line. Part of Mezmo Agent Tailer API. Default: off
  ```
 
