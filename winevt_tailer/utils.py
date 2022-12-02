@@ -8,8 +8,11 @@ import signal
 import psutil
 import ctypes
 import logging.handlers
-from lxml import etree
-import win32evtlog, win32event, win32file, win32api, win32process
+import win32evtlog
+import win32event
+import win32file
+import win32api
+import win32process
 import winevt_tailer.errors as errors
 import winevt_tailer.consts as consts
 from win32comext.shell import shell
@@ -52,7 +55,7 @@ def get_event_channels() -> [str]:
             break
         try:
             win32evtlog.EvtSubscribe(name, win32evtlog.EvtSubscribeStartAtOldestRecord, SignalEvent=h)
-        except Exception as ignore:
+        except Exception:
             continue
         names.append(name)
     h.Close()

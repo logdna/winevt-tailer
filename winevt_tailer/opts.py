@@ -153,14 +153,14 @@ def get_config(args: object, is_service: bool) -> (dict, dict):
             tailer_config_dict.update(config_tailers_dict.get(args.name, {}))
             logging_config_dict.update(config_file_dict.get('logging', {}))
     # tailer config from env vars and args
-    tailer_env = os.getenv(f'TAILER_CONFIG')
+    tailer_env = os.getenv('TAILER_CONFIG')
     tailer_env = os.getenv(f'TAILER_CONFIG_{args.name.upper()}', tailer_env)
     if tailer_env:
         tailer_config_dict.update(yaml.safe_load(tailer_env))
     if args.tailer_config:  # tailer config as YAML string CLI arg
         tailer_config_dict.update(yaml.safe_load(args.tailer_config))
     # logging config from env vars and args
-    logging_env = os.getenv(f'TAILER_LOGGING')
+    logging_env = os.getenv('TAILER_LOGGING')
     logging_env = os.getenv(f'TAILER_LOGGING_{args.name.upper()}', logging_env)
     if logging_env:
         logging_config_dict.update(yaml.safe_load(logging_env))

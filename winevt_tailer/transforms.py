@@ -40,7 +40,8 @@ def xml_render_message(context: dict, event_h, event_obj: object) -> object:
         try:
             message = win32evtlog.EvtFormatMessage(metadata, event_h, win32evtlog.EvtFormatMessageEvent)
         except Exception:
-            # pywintypes.error: (15027, 'EvtFormatMessage: allocated 0, need buffer of size 0', 'The message resource is present but the message was not found in the message table.')
+            # pywintypes.error: (15027, 'EvtFormatMessage: allocated 0, need buffer of size 0', 'The message resource
+            # is present but the message was not found in the message table.')
             pass
         else:
             sub = etree.SubElement(event_obj, 'Message')

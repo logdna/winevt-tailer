@@ -1,11 +1,13 @@
+# flake8: noqa: F4501
+
 TAILER_TYPE = "winevt-tailer"
 
 DEFAULT_LOOKBACK = 100  # per channel
 DEFAULT_TAILER_NAME = "tail1"
 
 # API version 1, no crc appended to log lines, no ACKs expected on stdin
-STARTUP_HELLO = '{"Tailer":{"name":"%s","type":'+ TAILER_TYPE + ',"version":1,"payload":"JSON","crc":false,' \
-                '"acks":false}}\n '
+STARTUP_HELLO = '{"Tailer":{"name":"%s","type":' + TAILER_TYPE + ',"version":1,"payload":"JSON","crc":false,' \
+                                                                 '"acks":false}}\n '
 
 DEFAULT_LOG_DIR = 'c:/ProgramData/logs'
 DEFAULT_DATA_DIR = 'c:/ProgramData/' + TAILER_TYPE
@@ -20,7 +22,7 @@ transforms:
     - winevt_tailer.transforms.xml_remove_binary
     - winevt_tailer.transforms.xml_render_message
     - winevt_tailer.transforms.xml_to_json
-bookmarks_dir: "''' + DEFAULT_DATA_DIR + '''"    
+bookmarks_dir: "''' + DEFAULT_DATA_DIR + '''"
 '''
 
 DEFAULT_CONFIG_FOR_CONSOLE = '''\
@@ -33,7 +35,7 @@ transforms:
     - winevt_tailer.transforms.xml_remove_binary
     - winevt_tailer.transforms.xml_render_message
     - winevt_tailer.transforms.xml_to_json
-bookmarks_dir: "."    
+bookmarks_dir: "."
 '''
 
 DEFAULT_LOGGING_FOR_SERVICE = '''\
@@ -48,23 +50,23 @@ handlers:
   file_tail:  # tail output, message only
     class: winevt_tailer.utils.RotatingFileHandler
     formatter: msg_only
-    filename: "''' + DEFAULT_LOG_DIR + '''/windows_{0}.log"    
+    filename: "''' + DEFAULT_LOG_DIR + '''/windows_{0}.log"
     level: INFO
     formatter: msg_only
-    maxBytes: 10000000 
+    maxBytes: 10000000
     backupCount: 1
     encoding: utf8
   file_svc:  # Service log
     class: winevt_tailer.utils.RotatingFileHandler
     formatter: msg_only
-    filename: "''' + DEFAULT_LOG_DIR + '''/''' + TAILER_TYPE + '''_{0}.log"    
+    filename: "''' + DEFAULT_LOG_DIR + '''/''' + TAILER_TYPE + '''_{0}.log"
     level: INFO
     formatter: simple
-    maxBytes: 10000000 
+    maxBytes: 10000000
     backupCount: 1
     encoding: utf8
 loggers:
-  tail_out: 
+  tail_out:
       level: INFO
       handlers: [file_tail]
 root: # all log
@@ -104,13 +106,13 @@ XSLT_XML_TO_JSON = '''\
 <?xml version="1.0"?>
 <xsl:stylesheet version="1.0" xmlns:xsl="http://www.w3.org/1999/XSL/Transform">
     <xsl:output method="text" encoding="utf-8"/>
- 
+
     <xsl:template match="/*[node()]">
         <xsl:text>{</xsl:text>
         <xsl:apply-templates select="." mode="detect" />
         <xsl:text>}</xsl:text>
     </xsl:template>
- 
+
     <xsl:template match="*" mode="detect">
         <xsl:choose>
             <xsl:when test="name(preceding-sibling::*[1]) = name(current()) and name(following-sibling::*[1]) != name(current())">
@@ -136,7 +138,7 @@ XSLT_XML_TO_JSON = '''\
             </xsl:when>
         </xsl:choose>
     </xsl:template>
- 
+
     <xsl:template match="*" mode="obj-content">
         <xsl:text>{</xsl:text>
             <xsl:apply-templates select="@*" mode="attr" />
@@ -151,12 +153,12 @@ XSLT_XML_TO_JSON = '''\
         <xsl:text>}</xsl:text>
         <xsl:if test="position() &lt; last()">, </xsl:if>
     </xsl:template>
- 
+
     <xsl:template match="@*" mode="attr">
         <xsl:text>"</xsl:text><xsl:value-of select="name()"/>" : "<xsl:value-of select="."/><xsl:text>"</xsl:text>
         <xsl:if test="position() &lt; last()">,</xsl:if>
     </xsl:template>
- 
+
     <xsl:template match="node/@TEXT | text()" name="removeBreaks">
         <xsl:param name="pText" select="normalize-space(.)"/>
         <xsl:choose>
@@ -169,6 +171,6 @@ XSLT_XML_TO_JSON = '''\
             </xsl:otherwise>
         </xsl:choose>
     </xsl:template>
- 
+
 </xsl:stylesheet>
 '''

@@ -47,7 +47,7 @@ def main() -> int:
         else:
             transforms_path = os.getcwd()  # current working dir
     transforms_path = os.path.normpath(transforms_path)
-    tailer_config_dict["transforms_path"] = transforms_path.replace('\\','\\\\')
+    tailer_config_dict["transforms_path"] = transforms_path.replace('\\', '\\\\')
     sys.path.append(os.path.abspath(transforms_path))
 
     # print effective config to stdout and exit
@@ -152,7 +152,7 @@ def install_tailer_service(tailer_service_name) -> int:
             return 1
     try:
         win32serviceutil.RemoveService(tailer_service_name)
-    except win32service.error as ex:
+    except win32service.error:
         pass
     try:
         # remove -i/--install_service & -u/--uninstall_service

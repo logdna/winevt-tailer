@@ -3,12 +3,14 @@ import sys
 import logging
 import time
 import contextlib
-import win32evtlog, win32event, win32con
+import win32evtlog
+import win32event
+import win32con
 import winevt_tailer.opts as opts
 import winevt_tailer.utils as utils
 import winevt_tailer.consts as consts
 import winevt_tailer.errors as errors
-from lxml import etree
+import lxml
 
 
 class Tailer:
@@ -93,7 +95,7 @@ class Tailer:
                 win32evtlog.EvtSeek(qrys[ch_idx], 0, win32evtlog.EvtSeekRelativeToBookmark | win32evtlog.EvtSeekStrict,
                                     self.bookmarks[ch_idx])
                 fetch_old_events = True
-            except Exception as ex:
+            except Exception:
                 if self.config.lookback > 0:
                     win32evtlog.EvtSeek(qrys[ch_idx], -(self.config.lookback - 1), win32evtlog.EvtSeekRelativeToLast)
                     fetch_old_events = True
@@ -194,7 +196,7 @@ class Tailer:
 
     def handle_event(self, ch_idx: int, event_h) -> bool:
         xml_str = win32evtlog.EvtRender(event_h, win32evtlog.EvtRenderEventXml)
-        event_obj = etree.fromstring(xml_str)
+        event_obj = lxml.etree.fromstring(xml_str)
         # apply channel transforms
         for xform in self.channel_transforms[ch_idx]:
             event_obj = xform(self.context, event_h, event_obj)
