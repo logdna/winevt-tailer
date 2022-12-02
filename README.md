@@ -6,16 +6,16 @@ Windows Event Log Tailer allows to live tail Windows events to standard output w
 - Live tail - following new events
 - Lookback
 - XPath queries
-- Event Transforms - allows to apply user defined transformations to events
-- Keeping track of tailed events - persistent state
-- Windows service mode with self install / uninstall
+- Event Transforms - applying user defined transformations to events
+- Keeping track of last tailed events - maintaining persistent state between runs
+- Windows service mode with self install and uninstall
 - Custom tail output using standard logging framework
-- Using fast native libxml2 (lxml) for XML parsing, XSLT transforms (JSON assembly)
+- Using fast native libxml2 (lxml) for XML parsing and XSLT transforms (JSON assembly)
 - Integration with Mezmo Agent
 
 ## Installation
 
-Tailer is distributed as signed standalone executable available for download [here](https://github.com/logdna/winevt-tailer/releases).
+Tailer is distributed as signed standalone executable available for download from [Releases](https://github.com/logdna/winevt-tailer/releases).
 
 ## Getting Started
 
@@ -50,7 +50,7 @@ Service defaults:
 - service name: ```winevt-tailer_<tailer_name>```
 - tailer name: ```tail1```, see "-n" option
 
-Functionally this service will be equivalent to CLI mode: ```winevt-tailer <CLI options>```. To change service CLI options - just run the same "-i" command again with new set of options.
+Functionally this service will be equivalent to CLI mode: ```winevt-tailer <CLI options>```. To change service CLI options - just run the same "-i" command again with new set of options. Persistent state "-p" and follow mode "-f" are enabled by default in service mode.
 
 Tailer logs by default are stored in ```c:/ProgramData/logs```:
 
@@ -59,7 +59,7 @@ windows_tail1.log           -- Windows events in one-line-JSON format, ready to 
 winevt-tailer_tail1.log     -- service instance log
 ```
 
-The location can be changed in config file in winevt-tailer.logging section.
+The location can be changed in config file in ```winevt-tailer.logging``` section.
 
 To uninstall the service:
 
