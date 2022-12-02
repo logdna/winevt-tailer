@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "winevt-tailer"
-version = "0.2.1"
+version = "0.3.1"
 description = 'Windows Event Log Tailer'
 authors = ["Dmitri Khokhlov <dkhokhlov@gmail.com>"]
 maintainers = ["Dmitri Khokhlov <dkhokhlov@gmail.com>"]
