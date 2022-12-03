@@ -283,6 +283,9 @@ pip install poetry
 - build exe
 
 ```
+make clean
+make lint
+make test
 make build
 ```
 
@@ -293,6 +296,7 @@ build will create ```winevt-tailer.exe``` in folder ```build/dist```
 ```
 build/dist/winevt-tailer.exe
 ```
+
 
 ## Integration with Mezmo Agent
 

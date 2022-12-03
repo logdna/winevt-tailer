@@ -77,4 +77,6 @@ release-major: clean install                    ## run semantic release build an
 
 .PHONY:test
 test: install ## run project test suite
+	$(POETRY_COMMAND) run task pre_test
 	$(POETRY_COMMAND) run task test
+	$(POETRY_COMMAND) run task post_test

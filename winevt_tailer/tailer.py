@@ -3,6 +3,9 @@ import sys
 import logging
 import time
 import contextlib
+from  lazy_string import LazyString
+import lxml
+from lxml import etree
 import win32evtlog
 import win32event
 import win32con
@@ -10,7 +13,6 @@ import winevt_tailer.opts as opts
 import winevt_tailer.utils as utils
 import winevt_tailer.consts as consts
 import winevt_tailer.errors as errors
-import lxml
 
 
 class Tailer:
@@ -144,7 +146,7 @@ class Tailer:
         # exit after old events printed?
         if self.config.exit_after_lookback or self.is_stop:
             self.log.info("stop")
-            sys.exit(0)
+            return 0
         # fetch & handle new events before waiting
         for ch_idx in range(0, len(self.config.channels)):
             last_event_h = None
@@ -197,6 +199,7 @@ class Tailer:
     def handle_event(self, ch_idx: int, event_h) -> bool:
         xml_str = win32evtlog.EvtRender(event_h, win32evtlog.EvtRenderEventXml)
         event_obj = lxml.etree.fromstring(xml_str)
+        self.log.debug(LazyString(lambda: etree.tostring(event_obj, pretty_print=True).decode()))
         # apply channel transforms
         for xform in self.channel_transforms[ch_idx]:
             event_obj = xform(self.context, event_h, event_obj)

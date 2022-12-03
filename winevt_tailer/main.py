@@ -11,8 +11,8 @@ import winevt_tailer.consts as consts
 from winevt_tailer.tailer import Tailer
 
 
-def main() -> int:
-    args = opts.parse_cmd_args()
+def main(argv: dict = None) -> int:
+    args = opts.parse_cmd_args(argv)
     assert args.name
     tailer_name = args.name
     tailer_service_name = f'{consts.TAILER_TYPE}_{tailer_name}'

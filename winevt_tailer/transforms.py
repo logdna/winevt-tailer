@@ -1,14 +1,15 @@
+import lxml
 from lxml import etree
 import win32evtlog
 import winevt_tailer.consts as const
 
-xml_to_json_xform = etree.XSLT(etree.fromstring(const.XSLT_XML_TO_JSON))
+g_xml_to_json_xform = lxml.etree.XSLT(lxml.etree.fromstring(const.XSLT_XML_TO_JSON))
 
 
 def xml_to_json(context: dict, event_h, event_obj: object) -> object:
-    tree_obj = xml_to_json_xform(event_obj)
-    event_out = str(tree_obj).replace("\n", "\\n")  # TODO: do it using XSLT
-    return event_out
+    tree_obj = g_xml_to_json_xform(event_obj)
+    event_json = str(tree_obj)
+    return event_json
 
 
 def xml_remove_binary(context: dict, event_h, event_obj: object) -> object:
@@ -38,12 +39,12 @@ def xml_render_message(context: dict, event_h, event_obj: object) -> object:
         pass
     else:
         try:
-            message = win32evtlog.EvtFormatMessage(metadata, event_h, win32evtlog.EvtFormatMessageEvent)
+            message: str = win32evtlog.EvtFormatMessage(metadata, event_h, win32evtlog.EvtFormatMessageEvent)
         except Exception:
             # pywintypes.error: (15027, 'EvtFormatMessage: allocated 0, need buffer of size 0', 'The message resource
             # is present but the message was not found in the message table.')
             pass
         else:
-            sub = etree.SubElement(event_obj, 'Message')
+            sub = lxml.etree.SubElement(event_obj, 'Message')
             sub.text = message
     return event_obj

@@ -3,6 +3,7 @@ import os
 import sys
 import uuid
 import lxml
+from lxml import etree
 import yaml
 import signal
 import psutil
