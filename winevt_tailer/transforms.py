@@ -29,7 +29,6 @@ def xml_remove_binary(context: dict, event_h, event_obj: object) -> object:
 
 
 def xml_render_message(context: dict, event_h, event_obj: object) -> object:
-    message = ''
     try:
         ns = {'event': 'http://schemas.microsoft.com/win/2004/08/events/event'}
         provider_name = event_obj.xpath("//event:Provider/@Name", namespaces=ns)

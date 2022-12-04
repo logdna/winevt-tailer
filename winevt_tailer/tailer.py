@@ -3,7 +3,7 @@ import sys
 import logging
 import time
 import contextlib
-from  lazy_string import LazyString
+from lazy_string import LazyString
 import lxml
 from lxml import etree
 import win32evtlog
