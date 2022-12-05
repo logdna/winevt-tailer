@@ -1,6 +1,22 @@
 # winevt-tailer
 Windows Event Log Tailer allows to live tail Windows events to standard output when running as console application or to log file when running as a service. It is written in Python, and is MIT licensed open source.
 
+<!-- TOC -->
+* [Features](#features)
+* [Installation](#installation)
+* [Getting Started](#getting-started)
+  * [Console mode](#console-mode)
+  * [Service mode](#service-mode)
+* [Advanced Usage](#advanced-usage)
+  * [CLI Options](#cli-options)
+  * [Configuration File](#configuration-file)
+  * [Event Channels and XPath queries](#event-channels-and-xpath-queries)
+  * [Environment vars](#environment-vars)
+  * [Event Transforms](#event-transforms)
+* [How to Build](#how-to-build)
+* [Integration with Mezmo Agent](#integration-with-mezmo-agent)
+<!-- TOC -->
+
 ## Features
 
 - Live tail - following new events
@@ -19,7 +35,7 @@ Tailer is distributed as signed standalone executable available for download fro
 
 ## Getting Started
 
-### Console mode (CLI)
+### Console mode
 
 To tail last 100 events from Application and last 100 events from System event logs:
 
@@ -191,18 +207,28 @@ Environment vars override config file. CLI options override environment vars and
 Tailer event processing pipeline:
 
 ```
-  Event Channel -> Event XML Object -> Transforms -> XML Object to JSON -> Output
+  Event Channel -> Event XML Object -> Transforms (channel level) -> Transforms (top level) -> XML Object to JSON -> Output
 ```
 
-Default transforms - as defined in default config:
+Transforms can be configured at two levels:
+
+- channel      - applied first, channel specific 
+- top level    - applied at the end, common transforms for all channels
+
+Example:
 
 ```
 winevt-tailer:
     tail1:
-      transforms:
-      - winevt_tailer.transforms.xml_remove_binary
-      - winevt_tailer.transforms.xml_render_message
-      - winevt_tailer.transforms.xml_to_json
+        transforms:                                       <<<< top level
+        - winevt_tailer.transforms.xml_remove_binary
+        - winevt_tailer.transforms.xml_render_message
+        - winevt_tailer.transforms.xml_to_json
+        channels:
+        - name: Application
+          query: '*'
+          transforms:                                     <<<< channel level 
+          - my_transform.custom_channel_specific
 ```
 
 Transform name is Python object importable full dotted path. Transforms applied in the list order. Tailer supports adding custom transforms defined in external py module file.
@@ -220,7 +246,7 @@ def dedup_by_message(context: dict, event_h, event_obj: object) -> object:
     xform. It uses context object to store last event.
     Args:
         context: a dictionary that can be used to store data that preserved between calls
-        event_h: original event handle from win32evtlog
+        event_h: event handle returned from win32evtlog API
         event_obj:  lxml.etree - parsed XMl object
     Returns:
         None - to skip event, otherwise unmodified original event obj

@@ -7,6 +7,15 @@ g_xml_to_json_xform = lxml.etree.XSLT(lxml.etree.fromstring(const.XSLT_XML_TO_JS
 
 
 def xml_to_json(context: dict, event_h, event_obj: object) -> object:
+    """
+        Converts etree event object to single line JSON string
+    Args:
+        context(dict): context persist over runtime, can be re-used to store key-values pairs
+        event_h(PyHANDLE): event handle returned from win32evtlog API
+        event_obj(object): event object, lxml tree object
+    Returns:
+        object:  event as single line JSON string
+    """
     tree_obj = g_xml_to_json_xform(event_obj)
     event_json = str(tree_obj)
     return event_json
@@ -16,10 +25,11 @@ def xml_remove_binary(context: dict, event_h, event_obj: object) -> object:
     """
         Removes Event/EventData/Binary tag from event_obj
     Args:
-        context(dict): context persist over runtime. can be re-used to store key-values pairs
+        context(dict): context persist over runtime, can be re-used to store key-values pairs
+        event_h(PyHANDLE): event handle returned from win32evtlog API
         event_obj(object): event object, lxml tree object
     Returns:
-        object:  None - skip/drop event
+        object:  modified event_obj or None - to skip/drop event
     """
     context['last_event'] = event_obj
     ns = {'event': 'http://schemas.microsoft.com/win/2004/08/events/event'}
@@ -29,6 +39,15 @@ def xml_remove_binary(context: dict, event_h, event_obj: object) -> object:
 
 
 def xml_render_message(context: dict, event_h, event_obj: object) -> object:
+    """
+        Adds new "Message" xml tag with rendered log event message text.
+    Args:
+        context(dict): context persist over runtime, can be re-used to store key-values pairs
+        event_h(PyHANDLE): event handle returned from win32evtlog API
+        event_obj(object): event object, lxml tree object
+    Returns:
+        object:  modified event_obj or None - to skip/drop event
+    """
     try:
         ns = {'event': 'http://schemas.microsoft.com/win/2004/08/events/event'}
         provider_name = event_obj.xpath("//event:Provider/@Name", namespaces=ns)

@@ -210,6 +210,6 @@ class Tailer:
             event_obj = xform(self.context, event_h, event_obj)
             if event_obj is None:
                 return False  # skipped
-        # print to tailer output configured in logging config
+        # print to tail_out logger configured in logging config
         self.tail_out.info(event_obj)
         return True
