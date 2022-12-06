@@ -34,6 +34,7 @@ channels:
 transforms:
     - winevt_tailer.transforms.xml_remove_binary
     - winevt_tailer.transforms.xml_render_message
+    - winevt_tailer.transforms.xml_remove_eventdata
     - winevt_tailer.transforms.xml_to_json
 bookmarks_dir: "."
 '''

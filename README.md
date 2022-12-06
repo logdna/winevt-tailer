@@ -189,6 +189,7 @@ winevt-tailer:
 
 
 ### Environment vars
+
 Named tailer config and logging config sections can be passed in environment vars (as minified one-line-yaml string):
 
 ```
@@ -231,9 +232,9 @@ winevt-tailer:
           - my_transform.custom_channel_specific
 ```
 
-Transform name is Python object importable full dotted path. Transforms applied in the list order. Tailer supports adding custom transforms defined in external py module file.
+Transform name is Python object importable full dotted path. Transforms applied in the listed order. Tailer supports adding custom transforms defined in external py module file.
 
-Example of simple event *deduplication transform* (reduction filter) that skips subsequent events that have the same text in Message field:
+Here's a working example of event *deduplication transform* or reduction filter that skips subsequent events that have the same text in Message tag:
 
 ```
 from lxml import etree
