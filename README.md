@@ -43,7 +43,7 @@ To tail last 100 events from Application and last 100 events from System event l
 winevt-tailer
 ```
 
-Tailer will output each event log message to stdout as single-line-JSON. Multi-line values are escaped with '\n'.
+Tailer will output each event log message to stdout as utf-8 encoded single-line JSON. New line, '\' and '"' chars in JSON field values are escaped with '\'.
 
 To tail last 10 events and to follow new events:
 
