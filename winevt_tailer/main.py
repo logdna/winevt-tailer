@@ -1,5 +1,6 @@
 import sys
 import os
+import traceback
 import logging.config
 import pywintypes
 import win32serviceutil
@@ -16,7 +17,8 @@ def main(argv: dict = None) -> int:
     assert args.name
     tailer_name = args.name
     tailer_service_name = f'{consts.TAILER_TYPE}_{tailer_name}'
-    is_service = utils.is_running_as_service()
+    is_agent_child = utils.is_agent_child()  # started by agent
+    is_service = utils.is_service() and not is_agent_child
 
     # print windows event channels to stdout and exit
     if args.list:
@@ -42,8 +44,8 @@ def main(argv: dict = None) -> int:
     if args.transforms_path is not None:
         transforms_path = args.transforms_path
     else:
-        if hasattr(sys, "frozen") and utils.is_running_as_service():
-            transforms_path = os.path.dirname(sys.executable)  # relative to exe
+        if hasattr(sys, "frozen") and (is_service or is_agent_child):
+            transforms_path = os.path.dirname(sys.executable)  # exe location
         else:
             transforms_path = os.getcwd()  # current working dir
     transforms_path = os.path.normpath(transforms_path)
@@ -69,6 +71,10 @@ def main(argv: dict = None) -> int:
     log = logging.getLogger('main')
     log.info('init')
 
+    # record unhandled exceptions to log
+    sys.excepthook = lambda exc_type, exc_value, exc_traceback: unhandled_exception_handler(exc_type, exc_value,
+                                                                                            exc_traceback, log)
+
     # create tailer config obj
     tailer_config = opts.parse_tailer_config(tailer_config_dict)
 
@@ -83,8 +89,10 @@ def main(argv: dict = None) -> int:
 
     if is_service:
         # service mode
+        # log effective config
         yaml_str = utils.compose_effective_config(tailer_name, tailer_config_dict, logging_config_dict)
         log.info('\n' + yaml_str)
+        # initialize as service
         sys.stdout = sys.stderr = open('nul', 'w')
         TailerService._svc_name_ = tailer_service_name
         TailerService._svc_display_name_ = tailer_service_name
@@ -94,7 +102,7 @@ def main(argv: dict = None) -> int:
         servicemanager.StartServiceCtrlDispatcher()  # returns when the service has stopped
         exit_code = 0
     else:
-        # cli, console mode
+        # CLI, console mode
         utils.setup_exit_signal_handler(lambda signum: exit_signal_handler(signum, tailer))
         # run tailer main loop
         exit_code = tailer.run()
@@ -105,6 +113,13 @@ def main(argv: dict = None) -> int:
 
 def exit_signal_handler(signum, tailer):
     tailer.stop() and print('Exiting ...', file=sys.stderr)
+
+
+def unhandled_exception_handler(exc_type, exc_value, exc_traceback, log):
+    if issubclass(exc_type, KeyboardInterrupt):
+        sys.__excepthook__(exc_type, exc_value, exc_traceback)
+        return
+    log.error("Unhandled exception", exc_info=(exc_type, exc_value, exc_traceback))
 
 
 class TailerService(win32serviceutil.ServiceFramework):

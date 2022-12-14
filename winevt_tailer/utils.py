@@ -151,12 +151,12 @@ def get_parent_process(ok_names, limit=10):
     """
     Walk up the process tree until we find a process we like.
     """
-    depth = 0
+    depth = 1
     this_proc = psutil.Process(os.getpid())
     next_proc = psutil.Process(this_proc.ppid())
     try:
-        while depth < limit:
-            if next_proc.name().lower() in ok_names:
+        while depth <= limit:
+            if next_proc.name() in ok_names:
                 return next_proc
             next_proc = psutil.Process(next_proc.ppid())
             depth += 1
@@ -165,8 +165,18 @@ def get_parent_process(ok_names, limit=10):
     return None
 
 
-def is_running_as_service() -> bool:
+def is_service() -> bool:
+    # running as child process of services.exe
     return get_parent_process(["services.exe"]) is not None
+
+
+def is_agent_child() -> bool:
+    # running as child process of agent
+    return get_parent_process(
+        ["logdna-agent.exe",
+         "logdna-agent-svc.exe",
+         "mezmo-agent.exe",
+         "mezmo-agent-svc.exe"]) is not None
 
 
 def is_admin_user() -> bool:
