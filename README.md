@@ -177,7 +177,7 @@ then switch to XML view of the filter and extract XPath query (highlighted):
 
 ![image](https://user-images.githubusercontent.com/7530150/204931845-68af1728-38fa-4549-9d65-30582e533681.png)
 
-Use extracted XPath string as query value:
+Use extracted XPath string as query value in tailer config file:
 ```
 winevt-tailer:
     tail1:
@@ -232,7 +232,7 @@ winevt-tailer:
           - my_transform.custom_channel_specific
 ```
 
-Transform name is Python object importable full dotted path. Transforms applied in the listed order. Tailer supports adding custom transforms defined in external py module file.
+Transform name is Python object importable full dotted path that used in import statements. Transforms are applied in the listed order. Tailer supports adding custom transforms defined in external py module file.
 
 Here's a working example of event *deduplication transform* or reduction filter that skips subsequent events that have the same text in Message tag:
 
