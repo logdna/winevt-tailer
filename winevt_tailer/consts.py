@@ -25,6 +25,19 @@ transforms:
 bookmarks_dir: "''' + DEFAULT_DATA_DIR + '''"
 '''
 
+DEFAULT_CONFIG_FOR_AGENT = '''\
+channels:
+   - name: Application
+     query: "*"
+   - name: System
+     query: "*"
+transforms:
+    - winevt_tailer.transforms.xml_remove_binary
+    - winevt_tailer.transforms.xml_render_message
+    - winevt_tailer.transforms.xml_to_json
+bookmarks_dir: "''' + DEFAULT_DATA_DIR + '''"
+'''
+
 DEFAULT_CONFIG_FOR_CONSOLE = '''\
 channels:
    - name: Application
@@ -50,7 +63,6 @@ formatters:
 handlers:
   file_tail:  # tail output, message only
     class: winevt_tailer.utils.RotatingFileHandler
-    formatter: msg_only
     filename: "''' + DEFAULT_LOG_DIR + '''/windows_{0}.log"
     level: INFO
     formatter: msg_only
@@ -59,7 +71,6 @@ handlers:
     encoding: utf8
   file_svc:  # Service log
     class: winevt_tailer.utils.RotatingFileHandler
-    formatter: msg_only
     filename: "''' + DEFAULT_LOG_DIR + '''/''' + TAILER_TYPE + '''_{0}.log"
     level: INFO
     formatter: simple
@@ -70,6 +81,37 @@ loggers:
   tail_out:
       level: INFO
       handlers: [file_tail]
+root: # all log
+  level: INFO
+  handlers: [file_svc]
+'''
+
+DEFAULT_LOGGING_FOR_AGENT = '''\
+version: 1
+disable_existing_loggers: true
+formatters:
+  simple:
+    format: '%(asctime)s - %(name)s - %(levelname)s - %(message)s'
+  msg_only:
+    format: '%(message)s'
+handlers:
+  stdout: # tail output
+    class: logging.StreamHandler
+    level: INFO
+    formatter: msg_only
+    stream: ext://sys.stdout
+  file_svc:  # Service log
+    class: winevt_tailer.utils.RotatingFileHandler
+    filename: "''' + DEFAULT_LOG_DIR + '''/''' + TAILER_TYPE + '''_{0}.log"
+    level: INFO
+    formatter: simple
+    maxBytes: 10000000
+    backupCount: 1
+    encoding: utf8
+loggers:
+  tail_out:
+      level: INFO
+      handlers: [stdout]
 root: # all log
   level: INFO
   handlers: [file_svc]

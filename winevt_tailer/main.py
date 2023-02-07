@@ -17,8 +17,8 @@ def main(argv: dict = None) -> int:
     assert args.name
     tailer_name = args.name
     tailer_service_name = f'{consts.TAILER_TYPE}_{tailer_name}'
-    is_agent_child = utils.is_agent_child()  # started by agent
-    is_service = utils.is_service() and not is_agent_child
+    is_agent_child = True # utils.is_agent_child()  # started by agent
+    is_service = True # utils.is_service()
 
     # print windows event channels to stdout and exit
     if args.list:
@@ -28,7 +28,7 @@ def main(argv: dict = None) -> int:
         return 0
 
     # collect config from various sources
-    tailer_config_dict, logging_config_dict = opts.get_config(args, is_service)
+    tailer_config_dict, logging_config_dict = opts.get_config(args, is_service, is_agent_child)
 
     # cli args override other config sources
     if args.lookback is not None:
@@ -87,7 +87,7 @@ def main(argv: dict = None) -> int:
         log.info('Reset completed')
         return 0
 
-    if is_service:
+    if is_service and not is_agent_child:
         # service mode
         # log effective config
         yaml_str = utils.compose_effective_config(tailer_name, tailer_config_dict, logging_config_dict)

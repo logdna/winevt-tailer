@@ -118,7 +118,7 @@ def parse_tailer_config(config_dict):
     return config
 
 
-def get_config(args: object, is_service: bool) -> (dict, dict):
+def get_config(args: object, is_service: bool, is_agent_child: bool) -> (dict, dict):
     """
     Collect tailer and logging configs from multiple sources (later overrides former):
     - default build-in
@@ -132,26 +132,28 @@ def get_config(args: object, is_service: bool) -> (dict, dict):
     Args:
         args: argparse output
         is_service: true if running as service
+        is_agent_child: true if running as agent child
     Returns:
         (dict,dict): returns tailer_config_dict, logging_config_dict
     """
-    if is_service:
+    if is_service and not is_agent_child:
         tailer_config_dict = yaml.safe_load(consts.DEFAULT_CONFIG_FOR_SERVICE.format(args.name))
         # service log and tail output go to different files in c:/ProgramData/logs
         logging_config_dict = yaml.safe_load(consts.DEFAULT_LOGGING_FOR_SERVICE.format(args.name))
+    elif is_agent_child:
+        tailer_config_dict = yaml.safe_load(consts.DEFAULT_CONFIG_FOR_AGENT.format(args.name))
+        # tailer log goes to c:/ProgramData/logs, while tail output goes to stdout
+        logging_config_dict = yaml.safe_load(consts.DEFAULT_LOGGING_FOR_AGENT.format(args.name))
     else:
         tailer_config_dict = yaml.safe_load(consts.DEFAULT_CONFIG_FOR_CONSOLE.format(args.name))
         # in cli mode log goes to stderr, while stdout is used for tail output only
         logging_config_dict = yaml.safe_load(consts.DEFAULT_LOGGING_FOR_CONSOLE.format(args.name))
-    # from file
+    # from config file
     if args.config_file:
         with args.config_file as f:
-            config_file_dict = yaml.safe_load(f)
-            config_tailers_dict = config_file_dict.get(consts.TAILER_TYPE)
-            if not config_tailers_dict:
-                raise errors.ConfigError(f'Missing "{consts.TAILER_TYPE}" section in config file: {f.name}')
+            config_tailers_dict = yaml.safe_load(f).get(consts.TAILER_TYPE, {})
             tailer_config_dict.update(config_tailers_dict.get(args.name, {}))
-            logging_config_dict.update(config_file_dict.get('logging', {}))
+            logging_config_dict.update(config_tailers_dict.get('logging', {}))
     # tailer config from env vars and args
     tailer_env = os.getenv('TAILER_CONFIG')
     tailer_env = os.getenv(f'TAILER_CONFIG_{args.name.upper()}', tailer_env)
