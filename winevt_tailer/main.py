@@ -18,7 +18,7 @@ def main(argv: dict = None) -> int:
     tailer_name = args.name
     tailer_service_name = f'{consts.TAILER_TYPE}_{tailer_name}'
     is_agent_child = utils.is_agent_child()  # started by agent
-    is_service = utils.is_service() and not is_agent_child
+    is_service = utils.is_service()
 
     # print windows event channels to stdout and exit
     if args.list:
@@ -28,7 +28,7 @@ def main(argv: dict = None) -> int:
         return 0
 
     # collect config from various sources
-    tailer_config_dict, logging_config_dict = opts.get_config(args, is_service)
+    tailer_config_dict, logging_config_dict = opts.get_config(args, is_service, is_agent_child)
 
     # cli args override other config sources
     if args.lookback is not None:
@@ -51,12 +51,6 @@ def main(argv: dict = None) -> int:
     transforms_path = os.path.normpath(transforms_path)
     tailer_config_dict["transforms_path"] = transforms_path.replace('\\', '\\\\')
     sys.path.append(os.path.abspath(transforms_path))
-
-    # print effective config to stdout and exit
-    if args.print_config:
-        yaml_str = utils.compose_effective_config(tailer_name, tailer_config_dict, logging_config_dict)
-        print(yaml_str)
-        return 0
 
     if args.install_service:
         return install_tailer_service(tailer_service_name)
@@ -87,7 +81,7 @@ def main(argv: dict = None) -> int:
         log.info('Reset completed')
         return 0
 
-    if is_service:
+    if is_service and not is_agent_child:
         # service mode
         # log effective config
         yaml_str = utils.compose_effective_config(tailer_name, tailer_config_dict, logging_config_dict)
@@ -104,6 +98,10 @@ def main(argv: dict = None) -> int:
     else:
         # CLI, console mode
         utils.setup_exit_signal_handler(lambda signum: exit_signal_handler(signum, tailer))
+        # log effective config in child mode
+        if is_agent_child:
+            yaml_str = utils.compose_effective_config(tailer_name, tailer_config_dict, logging_config_dict)
+            log.info('\n' + yaml_str)
         # run tailer main loop
         exit_code = tailer.run()
 
