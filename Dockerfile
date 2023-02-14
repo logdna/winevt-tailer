@@ -25,9 +25,10 @@ RUN wineboot -u
 RUN winetricks cmd
 RUN winetricks win10
 ARG MINICONDA_INSTALL=Miniconda3-py310_23.1.0-1-Windows-x86_64.exe
-RUN wget -q https://repo.anaconda.com/miniconda/$MINICONDA_INSTALL && \
-    xvfb-run wine ./$MINICONDA_INSTALL /InstallationType=JustMe /RegisterPython=1 /S /D=%UserProfile%\\Miniconda3 && \
-    rm $MINICONDA_INSTALL
+RUN wget -q https://repo.anaconda.com/miniconda/Miniconda3-py310_23.1.0-1-Windows-x86_64.exe
+RUN xvfb-run --auto-servernum --server-num=1 echo $MINICONDA_INSTALL
+#wine Miniconda3-py310_23.1.0-1-Windows-x86_64.exe /InstallationType=JustMe /RegisterPython=1 /S /D=%UserProfile%/Miniconda3
+RUN rm Miniconda3-py310_23.1.0-1-Windows-x86_64.exe
 ENV WINEPATH=C:\\users\\logdna\\miniconda3\\condabin;C:\\users\\logdna\\miniconda3\\Scripts;C:\\users\\logdna\\miniconda3\\Library\\bin;C:\\users\\logdna\\miniconda3\\Library\\usr\\bin
 RUN wine cmd /C conda.bat init cmd.exe
 RUN wine cmd /C conda.bat install pip git make -c conda-forge

@@ -26,18 +26,25 @@ DOCKER_COMMAND := $(DOCKER_RUN) -v $(PWD):$(WORKDIR):Z -w $(WORKDIR) -u $(shell 
 ifeq ($(OS),Windows_NT)
     # Windows host, that was configured per readme.md
     POETRY_COMMAND := poetry
+
+# build image
+.PHONY:build-image
+	echo skip
+
 else
     # x86_64 docker host
     POETRY_COMMAND := $(DOCKER_COMMAND) wine poetry
-endif
-
-# Exports the variables for shell use
-export
 
 # build image
 .PHONY:build-image
 build-image:
 	DOCKER_BUILDKIT=1 $(DOCKER) build --progress=plain --build-arg USER_ID=$(shell id -u) --build-arg GROUP_ID=$(shell id -g) -t logdna-poetry:local .
+
+endif
+
+# Exports the variables for shell use
+export
+
 
 # This helper function makes debugging much easier.
 .PHONY:debug-%
