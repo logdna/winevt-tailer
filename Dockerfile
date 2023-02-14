@@ -1,7 +1,6 @@
 FROM ubuntu:focal
 ARG USER_ID=5000
 ARG GROUP_ID=5000
-ARG MINICONDA_INSTALL=Miniconda3-py310_23.1.0-1-Windows-x86_64.exe
 USER root
 ARG DEBIAN_FRONTEND=noninteractive
 RUN apt-get update
@@ -25,6 +24,7 @@ RUN mkdir -p ./workdir && chmod 777 ./workdir
 RUN wineboot -u
 RUN winetricks cmd
 RUN winetricks win10
+ARG MINICONDA_INSTALL=Miniconda3-py310_23.1.0-1-Windows-x86_64.exe
 RUN wget -q https://repo.anaconda.com/miniconda/$MINICONDA_INSTALL && \
     xvfb-run wine ./$MINICONDA_INSTALL /InstallationType=JustMe /RegisterPython=1 /S /D=%UserProfile%\\Miniconda3 && \
     rm $MINICONDA_INSTALL
