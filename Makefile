@@ -24,22 +24,18 @@ DOCKER_COMMAND := $(DOCKER_RUN) -v $(PWD):$(WORKDIR):Z -w $(WORKDIR) -u $(shell 
 	logdna-poetry:local
 
 ifeq ($(OS),Windows_NT)
-    # Windows host, that was configured per readme.md
-    POETRY_COMMAND := poetry
+# Windows host, that was configured per readme.md
+POETRY_COMMAND := poetry
 
-# build image
 .PHONY:build-image
 	echo skip
-
 else
-    # x86_64 docker host
-    POETRY_COMMAND := $(DOCKER_COMMAND) wine poetry
+# x86_64 docker host
+POETRY_COMMAND := $(DOCKER_COMMAND) wine poetry
 
-# build image
 .PHONY:build-image
 build-image:
 	DOCKER_BUILDKIT=1 $(DOCKER) build --progress=plain --build-arg USER_ID=$(shell id -u) --build-arg GROUP_ID=$(shell id -g) -t logdna-poetry:local .
-
 endif
 
 # Exports the variables for shell use
@@ -55,10 +51,6 @@ debug-%: ## Debug a variable by calling `make debug-VARIABLE`
 .SILENT:help
 help: ## Show this help, includes list of all actions.
 	@awk 'BEGIN {FS = ":.*?## "}; /^.+: .*?## / && !/awk/ {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}' ${MAKEFILE_LIST}
-
-.PHONY:run
-run: install ## purge build time artifacts
-	$(DOCKER_COMMAND) bash
 
 .PHONY:clean
 clean: ## purge build time artifacts

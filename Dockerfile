@@ -31,7 +31,7 @@ RUN wget -q https://repo.anaconda.com/miniconda/$MINICONDA_INSTALL && \
 RUN rm Miniconda3-py310_23.1.0-1-Windows-x86_64.exe
 ENV WINEPATH=C:\\users\\logdna\\miniconda3\\condabin;C:\\users\\logdna\\miniconda3\\Scripts;C:\\users\\logdna\\miniconda3\\Library\\bin;C:\\users\\logdna\\miniconda3\\Library\\usr\\bin
 RUN wine cmd /C conda.bat init cmd.exe
-RUN wine cmd /C conda.bat install pip git make -c conda-forge
+RUN wine cmd /C conda.bat install -y pip git make -c conda-forge
 RUN wine cmd /C pip.exe install poetry
 RUN wine cmd /C git.exe config --global --add safe.directory ./workdir
 WORKDIR /home/logdna/workdir

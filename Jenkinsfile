@@ -24,9 +24,9 @@ pipeline {
   stages {
     stage('Test') {
       steps {
-        sh 'make build'
+        sh 'echo done'
       }
-/* TODO - run on windows agent
+/* TODO - run on Windows agent
       steps {
         sh 'make install lint test'
       }
@@ -46,8 +46,8 @@ pipeline {
 */
     }
 
+/* TODO - run on Windows agent
     stage('Release') {
-
       stages {
         stage('dry run') {
           when {
@@ -70,7 +70,6 @@ pipeline {
           }
         }
 
-/* TODO - run on windows agent
         stage('publish') {
           environment {
             GH_TOKEN = credentials('github-api-token')
@@ -89,8 +88,8 @@ pipeline {
             sh 'make release'
           }
         }
-*/
       }
     }
+*/
   }
 }
