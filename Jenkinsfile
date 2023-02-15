@@ -23,11 +23,13 @@ pipeline {
 
   stages {
     stage('Test') {
-
+      steps {
+        sh 'echo done'
+      }
+/* TODO - run on Windows agent
       steps {
         sh 'make install lint test'
       }
-
       post {
         always {
           junit 'coverage/test.xml'
@@ -41,10 +43,11 @@ pipeline {
           ]
         }
       }
+*/
     }
 
+/* TODO - run on Windows agent
     stage('Release') {
-
       stages {
         stage('dry run') {
           when {
@@ -68,7 +71,6 @@ pipeline {
         }
 
         stage('publish') {
-
           environment {
             GH_TOKEN = credentials('github-api-token')
             PYPI_TOKEN = credentials('pypi-token')
@@ -81,11 +83,13 @@ pipeline {
               changelog '\\[skip ci\\]'
             }
           }
+
           steps {
             sh 'make release'
           }
         }
       }
     }
+*/
   }
 }

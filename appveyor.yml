@@ -1,0 +1,30 @@
+os: Visual Studio 2019
+
+# Disable msbuild
+build: false
+
+skip_branch_with_pr: true
+
+environment:
+  PATH: C:\Users\appveyor\Miniconda3\condabin;C:\Users\appveyor\Miniconda3\Scripts;%PATH%
+
+cache:
+
+install:
+  - echo Installing Miniconda
+  - appveyor-retry appveyor DownloadFile https://repo.anaconda.com/miniconda/Miniconda3-py310_23.1.0-1-Windows-x86_64.exe
+  - Miniconda3-py310_23.1.0-1-Windows-x86_64.exe /InstallationType=JustMe /RegisterPython=1 /S /D=C:\Users\appveyor\Miniconda3
+  - del Miniconda3-py310_23.1.0-1-Windows-x86_64.exe
+  - activate.bat
+  - conda install -y pip git make -c conda-forge
+  - pip install poetry
+
+build_script:
+  - make build
+
+test_script:
+  - .\build\dist\winevt-tailer.exe -v
+
+artifacts:
+  - path: .\build\dist\winevt-tailer.exe
+    name: Executable

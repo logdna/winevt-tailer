@@ -3,10 +3,44 @@
 # Source in repository specific environment variables
 include .config.mk
 
+# Define commands via docker
+DOCKER = docker
+DOCKER_RUN := $(DOCKER) run --rm -i
+WORKDIR :=/workdir
+DOCKER_COMMAND := $(DOCKER_RUN) -v $(PWD):$(WORKDIR):Z -w $(WORKDIR) -u $(shell id -u):$(shell id -g) \
+	-e XDG_CONFIG_HOME=$(WORKDIR)/build/xdg_cache \
+	-e XDG_CACHE_HOME=$(WORKDIR)/build/xdg_cache \
+	-e POETRY_CACHE_DIR=$(WORKDIR)/build/poetry_cache \
+	-e POETRY_VIRTUALENV_IN_PROJECT=true \
+	-e PYPI_TOKEN \
+	-e GH_TOKEN \
+	-e JENKINS_URL \
+	-e BRANCH_NAME \
+	-e CHANGE_ID \
+	-e GIT_AUTHOR_NAME \
+	-e GIT_AUTHOR_EMAIL \
+	-e GIT_COMMITTER_NAME \
+	-e GIT_COMMITTER_EMAIL \
+	logdna-poetry:local
+
+ifeq ($(OS),Windows_NT)
+# Windows host, that was configured per readme.md
 POETRY_COMMAND := poetry
+
+.PHONY:build-image
+	echo skip
+else
+# x86_64 docker host
+POETRY_COMMAND := $(DOCKER_COMMAND) wine poetry
+
+.PHONY:build-image
+build-image:
+	DOCKER_BUILDKIT=1 $(DOCKER) build --progress=plain --build-arg USER_ID=$(shell id -u) --build-arg GROUP_ID=$(shell id -g) -t logdna-poetry:local .
+endif
 
 # Exports the variables for shell use
 export
+
 
 # This helper function makes debugging much easier.
 .PHONY:debug-%
@@ -18,10 +52,6 @@ debug-%: ## Debug a variable by calling `make debug-VARIABLE`
 help: ## Show this help, includes list of all actions.
 	@awk 'BEGIN {FS = ":.*?## "}; /^.+: .*?## / && !/awk/ {printf "\033[36m%-30s\033[0m %s\n", $$1, $$2}' ${MAKEFILE_LIST}
 
-.PHONY:run
-run: install ## purge build time artifacts
-	$(DOCKER_COMMAND) bash
-
 .PHONY:clean
 clean: ## purge build time artifacts
 	rm -rf dist/ build/ coverage/ pypoetry/ pip/ **/__pycache__/ .pytest_cache/ .cache .coverage
@@ -31,7 +61,7 @@ changelog: install ## print the next version of the change log to stdout
 	$(POETRY_COMMAND) run semantic-release changelog --unreleased
 
 .PHONY:install
-install: ## install development and build time dependencies
+install: build-image ## install development and build time dependencies
 	$(POETRY_COMMAND) install --no-interaction
 
 .PHONY:lint

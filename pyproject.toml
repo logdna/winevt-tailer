@@ -11,7 +11,7 @@ readme = "README.md"
 
 [tool.semantic_release]
 version_toml = "pyproject.toml:tool.poetry.version"
-version_pattern = "winevt-tailer/VERSION:(\\d+\\.\\d+\\.\\d+)"
+version_pattern = "pyproject.toml:version = \"(\\d+\\.\\d+\\.\\d+)\""
 branch = "master"
 commit_subject = "release: Version {version} [skip ci]"
 commit_author = "LogDNA Bot <bot@logdna.com>"
