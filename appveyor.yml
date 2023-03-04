@@ -13,10 +13,10 @@ cache:
 install:
   - echo Installing Miniconda
   - appveyor-retry appveyor DownloadFile https://repo.anaconda.com/miniconda/Miniconda3-py310_23.1.0-1-Windows-x86_64.exe
-  - Miniconda3-py310_23.1.0-1-Windows-x86_64.exe /InstallationType=JustMe /RegisterPython=1 /S /D=C:\Users\appveyor\Miniconda3
+  - cmd /C Start /Wait Miniconda3-py310_23.1.0-1-Windows-x86_64.exe /InstallationType=JustMe /RegisterPython=1 /S /D=C:\Users\appveyor\Miniconda3
   - del Miniconda3-py310_23.1.0-1-Windows-x86_64.exe
-  - activate.bat
-  - conda install -y pip git make -c conda-forge
+  - conda activate
+  - conda install -y git make -c conda-forge
   - pip install poetry
 
 build_script:
