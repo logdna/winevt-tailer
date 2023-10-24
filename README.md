@@ -1,5 +1,5 @@
 # winevt-tailer
-Windows Event Log Tailer allows to live tail Windows events to standard output when running as console application or to log file when running as a service. It is written in Python, and is MIT licensed open source.
+Windows Event Log Tailer provides live tailing of Windows events to standard output when running as console application or to log file when running as a service. It is written in Python, and is MIT licensed open source.
 
 <!-- TOC -->
 * [Features](#features)
